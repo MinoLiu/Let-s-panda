@@ -13,7 +13,7 @@
 // @grant        GM_xmlhttpRequest
 // @connect      *
 // @run-at       document-end
-// @version      0.0.1
+// @version      0.0.2
 // ==/UserScript==
 
 jQuery(function($) {
@@ -274,6 +274,7 @@ make sure login success, then click <button class="clearCookie">here</button>
                     },
                     onerror: function(err) {
                         final++;
+                        getImageNext();
                         if(debug) console.log(err);
                     }
                 });
@@ -296,6 +297,9 @@ make sure login success, then click <button class="clearCookie">here</button>
                     },
                     onerror: function(err) {
                         download.innerHTML = '<img src="https://exhentai.org/img/mr.gif"> <a href="#">Get href failed</a>';
+                        if(i == page -1){
+                            getImage();
+                        }
                         if(debug) console.log(err);
                     }
                 });
