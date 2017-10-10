@@ -13,7 +13,7 @@
 // @grant        GM_xmlhttpRequest
 // @connect      *
 // @run-at       document-end
-// @version      0.0.2
+// @version      0.0.3
 // ==/UserScript==
 
 jQuery(function($) {
@@ -224,7 +224,7 @@ make sure login success, then click <button class="clearCookie">here</button>
 
                 saveAs(blob, zipName);
                 if (debug) console.log('COMPLETE');
-                download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#"> Download completed!</a>`;
+                download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="${window.URL.createObjectURL(prevZip)}" download="${zipName}"> Download completed!</a>`;
                 end();
             });
         };
