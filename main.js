@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Let's panda!
-// @namespace    *
+// @namespace    Let-s-panda
 // @author       sean2525, strong-Ting
 // @description  A login, view, download tool for exhentai
 // @license      MIT
