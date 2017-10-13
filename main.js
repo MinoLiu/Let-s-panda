@@ -15,7 +15,7 @@
 // @grant        GM_getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.0
+// @version      0.1.1
 // ==/UserScript==
 
 jQuery(function($) {
@@ -574,7 +574,7 @@ make sure login success, then click <button class="clearCookie">here</button>
     }
     if((e = $('img')).length === 1 && e[0].src === window.location.href){
         loginPage();
-    } else if (window.location.href.match("^https://e[x|-]hentai.org/g")){
+    } else if (window.location.href.match(/^https:\/\/e[x-]hentai\.org\/g/)){
         downloadPage();
         view();
     }
