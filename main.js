@@ -391,67 +391,20 @@ make sure login success, then click <button class="clearCookie">here</button>
                         ajax.send(null);
                     });
                 },
-                /*
-        download_file: function(element,dir) {
-            [].forEach.call(element.querySelectorAll("a[href]"), function(item) {
-                console.log('load work');
-                var ajax = new XMLHttpRequest();
-                ajax.onreadystatechange = function() {
-                    if (4 == ajax.readyState && 200 == ajax.status) {
-                        var imgNo =  parseInt(ajax.responseText.match("startpage=(\\d+)").pop());
-                        var src = (new DOMParser()).parseFromString(ajax.responseText, "text/html").getElementById("img").src;
-
-                        var download_url = src;
-                        var download_filename = dir+"/" + (imgNo).toString();
-                        chrome.runtime.sendMessage({url:download_url ,filename:download_filename}, function(response) {
-                            console.log(response);
-                        });
-
-
-
-                    }
-                };
-                ajax.open("GET", item.href);
-                ajax.send(null);
-            });
-        },*/
-                getNextPage: function(action) {
+                getNextPage: function() {
                     var LoadPageUrls = this.loadPageUrls;
                     var download = this.download_file;
-                    var dir_name = document.getElementById('gj').innerHTML;
-                    if (dir_name == "")
-                    {
-                        dir_name = document.getElementById('gn').innerHTML;
-                    }
-                    dir_name = dir_name.replace("/"," ");
-                    dir_name = dir_name.replace("?"," ");
-                    dir_name = dir_name.replace("*"," ");
-                    dir_name = dir_name.replace("<"," ");
-                    dir_name = dir_name.replace('"'," ");
-                    dir_name = dir_name.replace(":"," ");
-                    dir_name = dir_name.replace(">"," ");
-                    dir_name = dir_name.replace("|"," ");
                     for (var i = 0; i < this.pageNum; ++i) {
                         var ajax = new XMLHttpRequest();
                         ajax.onreadystatechange = function() {
                             if (4 == this.readyState && 200 == this.status) {
                                 var dom = (new DOMParser()).parseFromString(this.responseText, "text/html");
-                                if (action == 'download')
-                                {
-                                    download(dom.getElementById("gdt"),dir_name);
-                                }
-                                else
-                                {
-                                    LoadPageUrls(dom.getElementById("gdt"));
-                                }
+                                LoadPageUrls(dom.getElementById("gdt"));
                             }
                         };
                         ajax.open("GET", location.href + "?p=" + i);
                         ajax.send(null);
                     }
-                },
-                download: function() {
-                    this.getNextPage("download");
                 },
                 claenGDT: function() {
                     while (gdt.firstChild && gdt.firstChild.className)
@@ -481,28 +434,77 @@ make sure login success, then click <button class="clearCookie">here</button>
 
                     document.getElementById('gdo4').innerHTML= ""; //clear origin button(Normal Large)
 
-
                     var style = document.createElement('style');
                     style.type = 'text/css';
-                    style.innerHTML = '.buttonCss{font-weight:bold;padding:3px 2px;margin:0 2px 4px 2px;white-space:nowrap;width: 55px;float:left;border-radius:5px;text-align:center;font-size:10pt;border:1px solid #706563;cursor:pointer}';
+                    style.innerHTML = `
+div#gdo4{
+position:absolute;
+width: 135px;
+height:32px;
+left:-50px;
+top:-40px;
+text-align:right;
+z-index:1;
+}
+
+
+
+
+.double {
+    font-weight: bold;
+    margin: 0 2px 4px 2px;
+    float: left;
+    border-radius: 5px;
+    height:32px;
+    width: 32px;
+    border: 1px solid #989898;
+    //background: #4f535b;
+    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/double_32.png);
+}
+
+.double:hover{
+background: #4f535b;
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/double_32.png);
+}
+
+.single{
+font-weight: bold;
+    margin: 0 2px 4px 2px;
+    float: left;
+    border-radius: 5px;
+    height:32px;
+    width: 32px;
+    border: 1px solid #989898;
+   // background: #4f535b;
+    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/single_32.png);
+}
+
+.single:hover{
+background: #4f535b;
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/single_32.png);
+
+}
+`;
                     document.getElementsByTagName('head')[0].appendChild(style);
 
 
+
+                    //show
+
                     var single_pic = document.createElement("div");//create single button
-                    single_pic.className = "buttonCss";
-                    single_pic.innerHTML += 'single';
+                    single_pic.className = "single";
+                    single_pic.innerHTML += '';
                     gdo4.appendChild(single_pic);
 
 
                     var double_pic = document.createElement("div"); //create double button
-                    double_pic.className = "buttonCss";
-                    double_pic.innerHTML = 'double';
+                    double_pic.className = "double";
+                    double_pic.innerHTML = '';
                     gdo4.appendChild(double_pic);
 
-                    /*            var downloads = document.createElement("div");
-            downloads.className = "buttonCss";
-            downloads.innerHTML = "downloads";
-            gdo4.appendChild(downloads);*/
+
+
+
 
                     document.getElementById('gdo4').children[0] //when single button click change value of width
                         .addEventListener('click', function (event) {
@@ -516,27 +518,10 @@ make sure login success, then click <button class="clearCookie">here</button>
 
                     document.getElementById('gdo4').children[1] //when double button click change value of width
                         .addEventListener('click', function (event) {
-
-                        // chrome.storage.sync.set({"width":0.48});
                         GM_setValue("width", "0.48");
                         var page_width = document.getElementById("gdt").offsetWidth;
                         pic_width(GM_getValue("width")*page_width);
                     });
-                    /*
-            document.getElementById('gdo4').children[2]
-                    .addEventListener('click',function(event){
-
-                        download_files(lpPage,imgNum,minPic,maxPic);
-
-            });*/
-                    /*
-            chrome.storage.onChanged.addListener(function(changes,area){ //when value of width is changed,change width of pics
-
-                var page_width = document.getElementById("gdt").offsetWidth;
-                pic_width(changes.width.newValue*page_width);
-
-            })
-*/
 
 
                     function pic_width(width)//change width of pics
