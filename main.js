@@ -15,7 +15,7 @@
 // @grant        GM_getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.2
+// @version      0.1.3
 // ==/UserScript==
 
 jQuery(function($) {
@@ -536,7 +536,8 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                         .addEventListener('click', function (event) {
                         GM_setValue("width", "0.35");
                         //var page_width = document.getElementById("gdt").offsetWidth;
-                        pic_width(GM_getValue("width"));
+						$('wrap').remove();	
+						pic_width(GM_getValue("width"));
                     });
 
 
