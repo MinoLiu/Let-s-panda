@@ -381,10 +381,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                                 {
                                     width = store_width;
                                 }
-                                var pic_num = (imgNo-1) % (maxPic-minPic+1);
-                                document.getElementById("gdt").children[pic_num].setAttribute('width',width*page_width);
+                            //    var pic_num = (imgNo-1) % (maxPic-minPic+1);
+                                //document.getElementById("gdt").getElementsByTagName[pic_num].setAttribute('width',width*page_width);
 
-
+                               $('#gdt').find('img').css('width',$(window).width()*GM_getValue("width"));
                             }
                         };
                         ajax.open("GET", item.href);
@@ -420,6 +420,22 @@ make sure login success, then click <button class="clearCookie">here</button>
                             this.imgList.push(img);
 
                             gdt.appendChild(img);
+
+                            if(GM_getValue("width") == 0.7){
+                                var warp = document.createElement('wrap');
+                                warp.innerHTML = '<br>';
+                                gdt.appendChild(warp);
+                            }
+                            else if(GM_getValue("width")==0.35){
+                                if(i%2==1){
+                                     var warp = document.createElement('wrap');
+                                    warp.innerHTML = '<br>';
+                                    gdt.appendChild(warp);
+                                }
+                            }
+
+
+
                         }
                         else
                         {
@@ -459,12 +475,12 @@ z-index:1;
     width: 32px;
     border: 1px solid #989898;
     //background: #4f535b;
-    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/double_32.png);
+    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
 }
 
 .double:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/double_32.png);
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
 }
 
 .single{
@@ -476,12 +492,12 @@ font-weight: bold;
     width: 32px;
     border: 1px solid #989898;
    // background: #4f535b;
-    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/single_32.png);
+    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
 }
 
 .single:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/single_32.png);
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
 
 }
 `;
@@ -509,18 +525,18 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     document.getElementById('gdo4').children[0] //when single button click change value of width
                         .addEventListener('click', function (event) {
                         // chrome.storage.sync.set({"width":0.8});
-                        GM_setValue("width", "0.8");
-                        var page_width = document.getElementById("gdt").offsetWidth;
-                        pic_width(GM_getValue("width")*page_width);
-
+                        GM_setValue("width", "0.7");
+                        //var page_width = document.getElementById("gdt").offsetWidth;
+                        pic_width(GM_getValue("width"));
+                        console.log(true);
                     });
 
 
                     document.getElementById('gdo4').children[1] //when double button click change value of width
                         .addEventListener('click', function (event) {
-                        GM_setValue("width", "0.48");
-                        var page_width = document.getElementById("gdt").offsetWidth;
-                        pic_width(GM_getValue("width")*page_width);
+                        GM_setValue("width", "0.35");
+                        //var page_width = document.getElementById("gdt").offsetWidth;
+                        pic_width(GM_getValue("width"));
                     });
 
 
@@ -528,7 +544,10 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     {
                         for(var i = (maxPic-minPic+1);i>0;i--)
                         {
-                            document.getElementById('gdt').children[i-1].setAttribute('width',width);
+
+                            //document.getElementById('gdt').children[i-1].setAttribute('width',width);
+                          //  document.getElementById('gdt').getElementsByTagName('img')[i].setAttribute('width',$(window).width()*0.6);
+                            $('#gdt').find('img').css('width',$(window).width()*width);
                         }
                     }
 
