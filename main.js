@@ -15,7 +15,7 @@
 // @grant        GM_getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.3
+// @version      0.1.4
 // ==/UserScript==
 
 jQuery(function($) {
@@ -426,7 +426,7 @@ make sure login success, then click <button class="clearCookie">here</button>
                                 warp.innerHTML = '<br>';
                                 gdt.appendChild(warp);
                             }
-                            else if(GM_getValue("width")==0.35){
+                            else if(GM_getValue("width")==0.48){
                                 if(i%2==1){
                                      var warp = document.createElement('wrap');
                                     warp.innerHTML = '<br>';
@@ -534,7 +534,7 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
 
                     document.getElementById('gdo4').children[1] //when double button click change value of width
                         .addEventListener('click', function (event) {
-                        GM_setValue("width", "0.35");
+                        GM_setValue("width", "0.48");
                         //var page_width = document.getElementById("gdt").offsetWidth;
 						$('wrap').remove();	
 						pic_width(GM_getValue("width"));
