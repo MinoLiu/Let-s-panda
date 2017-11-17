@@ -421,12 +421,12 @@ make sure login success, then click <button class="clearCookie">here</button>
 
                             gdt.appendChild(img);
 
-                            if(GM_getValue("width") == 0.7){
+                            if(GM_getValue("width")>0.5){
                                 var warp = document.createElement('wrap');
                                 warp.innerHTML = '<br>';
                                 gdt.appendChild(warp);
                             }
-                            else if(GM_getValue("width")==0.48){
+                            else if(GM_getValue("width")<=0.5){
                                 if(i%2==1){
                                      var warp = document.createElement('wrap');
                                     warp.innerHTML = '<br>';
@@ -468,12 +468,12 @@ z-index:1;
 
 .double {
     font-weight: bold;
-    margin: 0 2px 4px 2px;
+//    margin: 0 2px 4px 2px;
     float: left;
     border-radius: 5px;
     height:32px;
     width: 32px;
-    border: 1px solid #989898;
+    //border: 1px solid #989898;
     //background: #4f535b;
     background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
 }
@@ -485,20 +485,47 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
 
 .single{
 font-weight: bold;
-    margin: 0 2px 4px 2px;
+ //   margin: 0 2px 4px 2px;
     float: left;
     border-radius: 5px;
     height:32px;
     width: 32px;
-    border: 1px solid #989898;
+    //border: 1px solid #989898;
    // background: #4f535b;
     background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+}
+
+.size_pic{
+font-weight: bold;
+  //  margin: 0 2px 4px 2px;
+    float: left;
+    border-radius: 2px;
+    height:16px;
+    width: 16px;
+    //border: 1px solid #989898;
+   // background: #4f535b;
 }
 
 .single:hover{
 background: #4f535b;
 background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
 
+}
+
+.size_btn {
+  height: 32px;
+  width: 32px;
+  border-radius: 100%;
+  //font-family: Arial;
+  color: #ffffff;
+  font-size: 16px;
+  background: #4f535b;
+  text-decoration: none;
+}
+
+.size_btn:hover {
+  background: #a9adb1;
+  text-decoration: none;
 }
 `;
                     document.getElementsByTagName('head')[0].appendChild(style);
@@ -518,6 +545,16 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     double_pic.innerHTML = '';
                     gdo4.appendChild(double_pic);
 
+                    var size_pic_add = document.createElement("button");
+                    size_pic_add.className = "size_btn";
+                    size_pic_add.innerHTML += '+';
+                    gdo4.appendChild(size_pic_add);
+
+                    var size_pic_reduce = document.createElement("button");
+                    size_pic_reduce.className = "size_btn";
+                    size_pic_reduce.innerHTML += '-';
+                    gdo4.appendChild(size_pic_reduce);
+
 
 
 
@@ -535,11 +572,34 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     document.getElementById('gdo4').children[1] //when double button click change value of width
                         .addEventListener('click', function (event) {
                         GM_setValue("width", "0.48");
+                        $('wrap').remove();
                         //var page_width = document.getElementById("gdt").offsetWidth;
-						$('wrap').remove();	
-						pic_width(GM_getValue("width"));
+                        pic_width(GM_getValue("width"));
                     });
 
+                    document.getElementById('gdo4').children[2]
+                        .addEventListener('click', function (event) {
+                        var size_width = parseFloat(GM_getValue("width"));
+                        if(size_width>0.2 && size_width<0.9){
+                             size_width = size_width + 0.1;
+                             GM_setValue("width",size_width);
+                        }
+
+                        pic_width(GM_getValue("width"));
+                        console.log(GM_getValue("width"));
+                    });
+
+                    document.getElementById('gdo4').children[3]
+                        .addEventListener('click', function (event) {
+                        var size_width = parseFloat(GM_getValue("width"));
+                        if(size_width>0.3 && size_width<1){
+                             size_width = size_width - 0.1;
+                             GM_setValue("width",size_width);
+                        }
+
+                        pic_width(GM_getValue("width"));
+                        console.log(GM_getValue("width"));
+                    });
 
                     function pic_width(width)//change width of pics
                     {
