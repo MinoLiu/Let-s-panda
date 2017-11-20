@@ -15,7 +15,7 @@
 // @grant        GM_getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.5
+// @version      0.1.6
 // ==/UserScript==
 
 jQuery(function($) {
@@ -327,8 +327,9 @@ make sure login success, then click <button class="clearCookie">here</button>
             getHref();
         });
     };
-    function view()
-    {
+
+
+    function view(){
 
         var lpPage = (document.querySelectorAll("table.ptt td").length - 2);
 
@@ -367,29 +368,28 @@ make sure login success, then click <button class="clearCookie">here</button>
                                 var imgNo =  parseInt(ajax.responseText.match("startpage=(\\d+)").pop());
                                 var src = (new DOMParser()).parseFromString(ajax.responseText, "text/html").getElementById("img").src;
                                 Gallery.prototype.imgList[imgNo-1].src = src;
+ 
 
-                                var store_width = GM_getValue("width");
-
-                                var width = null;
-                                var page_width = document.getElementById("gdt").offsetWidth;
-
-                                if(GM_getValue == undefined)
-                                {
-                                    width = 0.8;
+                                if(GM_getValue("width") == undefined){
+                                    GM_setValue('width','0.7');
+                                    console.log('set width:0.7');
                                 }
-                                else
-                                {
-                                    width = store_width;
-                                }
-                            //    var pic_num = (imgNo-1) % (maxPic-minPic+1);
-                                //document.getElementById("gdt").getElementsByTagName[pic_num].setAttribute('width',width*page_width);
 
-                               $('#gdt').find('img').css('width',$(window).width()*GM_getValue("width"));
+                                if(GM_getValue("mode") == undefined){
+                                    GM_setValue('mode','single');
+                                    console.log('set mode:single');
+                                }
+                                
+                                $('#gdt').find('img').css('width',$(window).width()*GM_getValue("width"));
+
                             }
                         };
                         ajax.open("GET", item.href);
                         ajax.send(null);
                     });
+
+
+
                 },
                 getNextPage: function() {
                     var LoadPageUrls = this.loadPageUrls;
@@ -410,38 +410,21 @@ make sure login success, then click <button class="clearCookie">here</button>
                     while (gdt.firstChild && gdt.firstChild.className)
                         gdt.removeChild(gdt.firstChild);
                 },
+
                 generateImg: function(callback) {
                     for (var i = 0; i < this.imgNum; i++) {
-                        if(i<maxPic && i >= minPic - 1 )
-                        {
+                        if(i<maxPic && i >= minPic - 1 ){
                             var img = document.createElement('img');
                             img.setAttribute("src", "http://ehgt.org/g/roller.gif");
 
                             this.imgList.push(img);
 
                             gdt.appendChild(img);
-
-                            if(GM_getValue("width")>0.5){
-                                var warp = document.createElement('wrap');
-                                warp.innerHTML = '<br>';
-                                gdt.appendChild(warp);
-                            }
-                            else if(GM_getValue("width")<=0.5){
-                                if(i%2==1){
-                                     var warp = document.createElement('wrap');
-                                    warp.innerHTML = '<br>';
-                                    gdt.appendChild(warp);
-                                }
-                            }
-
-
-
                         }
-                        else
-                        {
+                        else{
                             var img = document.createElement("img");
                             this.imgList.push(img);
-                            //                   gdt.appendChild(img); //cant load all
+                       //     gdt.appendChild(img); //cant load all
                         }
                     }
 
@@ -467,15 +450,15 @@ z-index:1;
 
 
 .double {
-    font-weight: bold;
+font-weight: bold;
 //    margin: 0 2px 4px 2px;
-    float: left;
-    border-radius: 5px;
-    height:32px;
-    width: 32px;
-    //border: 1px solid #989898;
-    //background: #4f535b;
-    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
+float: left;
+border-radius: 5px;
+height:32px;
+width: 32px;
+//border: 1px solid #989898;
+//background: #4f535b;
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
 }
 
 .double:hover{
@@ -485,25 +468,25 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
 
 .single{
 font-weight: bold;
- //   margin: 0 2px 4px 2px;
-    float: left;
-    border-radius: 5px;
-    height:32px;
-    width: 32px;
-    //border: 1px solid #989898;
-   // background: #4f535b;
-    background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+//   margin: 0 2px 4px 2px;
+float: left;
+border-radius: 5px;
+height:32px;
+width: 32px;
+//border: 1px solid #989898;
+// background: #4f535b;
+background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
 }
 
 .size_pic{
 font-weight: bold;
-  //  margin: 0 2px 4px 2px;
-    float: left;
-    border-radius: 2px;
-    height:16px;
-    width: 16px;
-    //border: 1px solid #989898;
-   // background: #4f535b;
+//  margin: 0 2px 4px 2px;
+float: left;
+border-radius: 2px;
+height:16px;
+width: 16px;
+//border: 1px solid #989898;
+// background: #4f535b;
 }
 
 .single:hover{
@@ -513,19 +496,19 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
 }
 
 .size_btn {
-  height: 32px;
-  width: 32px;
-  border-radius: 100%;
-  //font-family: Arial;
-  color: #ffffff;
-  font-size: 16px;
-  background: #4f535b;
-  text-decoration: none;
+height: 32px;
+width: 32px;
+border-radius: 100%;
+//font-family: Arial;
+color: #ffffff;
+font-size: 16px;
+background: #4f535b;
+text-decoration: none;
 }
 
 .size_btn:hover {
-  background: #a9adb1;
-  text-decoration: none;
+background: #a9adb1;
+text-decoration: none;
 }
 `;
                     document.getElementsByTagName('head')[0].appendChild(style);
@@ -555,34 +538,57 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     size_pic_reduce.innerHTML += '-';
                     gdo4.appendChild(size_pic_reduce);
 
+/*
+                    const wrap =(width)=>{
+                        let img = $('#gdt').find('img');
 
+                        for(let i = 0;i<img.length;i++){
+                            let wrap = document.createElement('wrap');
+                            wrap.innerHTML='<br>';
+                            if(width>0.5){
+                                gdt.insertBefore(wrap,img[i]);
+                            }
+                            else if(width<=0.5){
+                                if(i%2!==1){
+                                    gdt.insertBefore(wrap,img[i]);
+                                }
 
-
+                            }
+                        }
+                    }
+*/
 
                     document.getElementById('gdo4').children[0] //when single button click change value of width
                         .addEventListener('click', function (event) {
-                        // chrome.storage.sync.set({"width":0.8});
                         GM_setValue("width", "0.7");
-                        //var page_width = document.getElementById("gdt").offsetWidth;
+                        GM_setValue("mode",'single');
                         pic_width(GM_getValue("width"));
-                        console.log(true);
+                        $('wrap').remove();
+
+
+
+                        wrap(GM_getValue("width"));
+
+
                     });
 
 
                     document.getElementById('gdo4').children[1] //when double button click change value of width
                         .addEventListener('click', function (event) {
                         GM_setValue("width", "0.48");
-                        $('wrap').remove();
-                        //var page_width = document.getElementById("gdt").offsetWidth;
+                        GM_setValue("mode",'double');
                         pic_width(GM_getValue("width"));
+                        $('wrap').remove();
+
+                        wrap(GM_getValue("mode"));
                     });
 
                     document.getElementById('gdo4').children[2]
                         .addEventListener('click', function (event) {
                         var size_width = parseFloat(GM_getValue("width"));
                         if(size_width>0.2 && size_width<0.9){
-                             size_width = size_width + 0.1;
-                             GM_setValue("width",size_width);
+                            size_width = size_width + 0.1;
+                            GM_setValue("width",size_width);
                         }
 
                         pic_width(GM_getValue("width"));
@@ -593,8 +599,8 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                         .addEventListener('click', function (event) {
                         var size_width = parseFloat(GM_getValue("width"));
                         if(size_width>0.3 && size_width<1){
-                             size_width = size_width - 0.1;
-                             GM_setValue("width",size_width);
+                            size_width = size_width - 0.1;
+                            GM_setValue("width",size_width);
                         }
 
                         pic_width(GM_getValue("width"));
@@ -605,9 +611,6 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                     {
                         for(var i = (maxPic-minPic+1);i>0;i--)
                         {
-
-                            //document.getElementById('gdt').children[i-1].setAttribute('width',width);
-                          //  document.getElementById('gdt').getElementsByTagName('img')[i].setAttribute('width',$(window).width()*0.6);
                             $('#gdt').find('img').css('width',$(window).width()*width);
                         }
                     }
@@ -621,9 +624,12 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
                 g.generateImg(function() {
                     g.loadPageUrls(gdt);
                     g.claenGDT();
-                    //            if (g.pageNum)
-                    //                g.getNextPage('load');
+                   // if (g.pageNum)
+                    //    g.getNextPage('load');
+
                 });
+
+                    wrap(GM_getValue("mode"));
             }
             else {
                 alert("There are some issue in the script\nplease open an issue on Github");
@@ -637,6 +643,23 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
             }
         }
     }
+    const wrap =(width)=>{
+        let img = $('#gdt').find('img');
+        let gdt = document.getElementById('gdt');
+        for(let i = 0;i<img.length;i++){
+            let wrap = document.createElement('wrap');
+            wrap.innerHTML='<br>';
+            if(GM_getValue("mode") == 'single'){
+                gdt.insertBefore(wrap,img[i]);
+            }
+            else if(GM_getValue("mode")=='double'){
+                if(i%2!==1){
+                    gdt.insertBefore(wrap,img[i]);
+                }
+
+            }
+        }
+    }
     if((e = $('img')).length === 1 && e[0].src === window.location.href){
         loginPage();
     } else if (window.location.href.match(/^https:\/\/e[x-]hentai\.org\/g/)){
@@ -644,3 +667,4 @@ background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/mas
         view();
     }
 });
+
