@@ -10,12 +10,16 @@
 // @include      https://e-hentai.org/g/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.4/jszip.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
+// @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM.setValue
+// @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.6
+// @version      0.1.7
 // ==/UserScript==
 
 jQuery(function($) {
@@ -60,6 +64,14 @@ align-items: center;
 -webkit-justify-content: center;
 justify-content: center;
 height: ${window.innerHeight}px;
+}
+.flex-center{
+display: -webkit-flex;
+display: flex;
+-webkit-align-items: center;
+align-items: center;
+-webkit-justify-content: center;
+justify-content: center;
 }
 form {
 display: -webkit-flex;
@@ -119,7 +131,12 @@ transition: all .2s ease-in-out;
 `;
         $('head').append(style);
         const setCookie = (headers)  => {
-            headers.split('\r\n').find(x => x.match('cookie')).replace('set-cookie: ', "").split('\n').map( x => document.cookie = x.replace('.e-hentai.org', '.exhentai.org'));
+            // only tampermonkey can get cookies from GM_xmlhttpRequest 
+            try{
+                headers.split('\r\n').find(x => x.match('cookie')).replace('set-cookie: ', "").split('\n').map( x => document.cookie = x.replace('.e-hentai.org', '.exhentai.org')); 
+            }catch(err){
+                if(debug) console.log(err);
+            }
             document.cookie = "yay=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.exhentai.org; path=/;";
             window.location.reload();
         };
@@ -129,6 +146,8 @@ transition: all .2s ease-in-out;
         };
         let form = document.createElement('form');
         let login = document.createElement('button');
+        let wrapper = document.createElement('div');
+        let loadding = document.createElement('img');
         let password = document.createElement('input');
         let error = document.createElement('p');
         error.innerHTML = `
@@ -136,14 +155,17 @@ if you can not login , go to <a target="_blank" href="https://forums.e-hentai.or
 make sure login success, then click <button class="clearCookie">here</button>
 `;
         error.style.color = "white";
-        error.hidden = true;
         $('img')[0].className = "image";
         username.type = "text";
         username.className = "input";
         password.type = "password";
         password.className = "input";
+        loadding.src = "data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="
+        loadding.style.position = "relative";
+        loadding.hidden = true;
         login.addEventListener('click', () => {
-            GM_xmlhttpRequest({
+            loadding.hidden = false;
+            GM.xmlHttpRequest({
                 method: "POST",
                 url: "https://forums.e-hentai.org/index.php?act=Login&CODE=01",
                 data: `referer=https://forums.e-hentai.org/index.php?&b=&bt=&UserName=${username.value}&PassWord=${password.value}&CookieDate=1"}`,
@@ -154,10 +176,12 @@ make sure login success, then click <button class="clearCookie">here</button>
                     if(debug) console.log(response);
                     if(/You are now logged/.exec(response.responseText)){
                         setCookie(response.responseHeaders);
-                    } else {
-                        error.hidden = false;
                     }
-
+                    loadding.hidden = true;
+                },
+                onerror: function(err) {
+                   if(debug) console.log(err);
+                   loadding.hidden = true;
                 }
             });
         });
@@ -165,7 +189,10 @@ make sure login success, then click <button class="clearCookie">here</button>
         login.innerHTML = "Login";
         form.append(username);
         form.append(password);
-        form.append(login);
+        wrapper.className = "flex-center";
+        wrapper.append(loadding);
+        wrapper.append(login);
+        form.append(wrapper);
         form.addEventListener('submit', e => {
             e.preventDefault();
         });
@@ -195,7 +222,7 @@ make sure login success, then click <button class="clearCookie">here</button>
             var extension = filename.split('.').pop();
             filename = ('0000' + index).slice(-4) + '.' + extension;
             if (debug) console.log(filename, 'progress');
-            GM_xmlhttpRequest({
+            GM.xmlHttpRequest({
                 method: 'GET',
                 url: url,
                 responseType: 'arraybuffer',
@@ -269,7 +296,7 @@ make sure login success, then click <button class="clearCookie">here</button>
             if(max > hrefs.length) max = hrefs.length;
             for(current; current < max ; current++){
                 if(debug) console.log(hrefs[current]);
-                GM_xmlhttpRequest({
+                GM.xmlHttpRequest({
                     method: "GET",
                     url: hrefs[current],
                     onload: function(response) {
@@ -291,7 +318,7 @@ make sure login success, then click <button class="clearCookie">here</button>
         const getHref = () => {
             let page = document.querySelector('table[class=ptt] tbody tr').childNodes.length-2;
             for(let i = 0 ; i < page; i++){
-                GM_xmlhttpRequest({
+                GM.xmlHttpRequest({
                     method: "GET",
                     url: `${loc}?p=${i}`,
                     onload: function(response) {
@@ -330,6 +357,9 @@ make sure login success, then click <button class="clearCookie">here</button>
 
 
     function view(){
+      	var gdt = document.querySelector('#gdt');
+      	var gdd = document.querySelector('#gdd');
+      	var gdo4 = document.querySelector('#gdo4');
 
         var lpPage = (document.querySelectorAll("table.ptt td").length - 2);
 
@@ -343,16 +373,13 @@ make sure login success, then click <button class="clearCookie">here</button>
         var pagePic = maxPic - minPic +1;
 
         var status = "false";
-
-
         viewer(document.querySelectorAll("table.ptt td").length - 2,imgNum ,minPic,maxPic);
 
-        function viewer(lpPage, imgNum,minPic,maxPic) {
+        async function viewer(lpPage, imgNum,minPic,maxPic) {
             var Gallery = function(pageNum, imgNum,minPic,maxPic) {
                 this.pageNum = pageNum || 0;
                 this.imgNum = imgNum || 0;
             };
-
             Gallery.prototype = {
                 imgList: [],
 
@@ -363,24 +390,23 @@ make sure login success, then click <button class="clearCookie">here</button>
                     [].forEach.call(element.querySelectorAll("a[href]"), function(item) {
                         console.log('load work');
                         var ajax = new XMLHttpRequest();
-                        ajax.onreadystatechange = function() {
+                        ajax.onreadystatechange = async function() {
                             if (4 == ajax.readyState && 200 == ajax.status) {
                                 var imgNo =  parseInt(ajax.responseText.match("startpage=(\\d+)").pop());
                                 var src = (new DOMParser()).parseFromString(ajax.responseText, "text/html").getElementById("img").src;
                                 Gallery.prototype.imgList[imgNo-1].src = src;
- 
 
-                                if(GM_getValue("width") == undefined){
-                                    GM_setValue('width','0.7');
+                                if(await GM.getValue("width") == undefined){
+                                    GM.setValue('width','0.7');
                                     console.log('set width:0.7');
                                 }
 
-                                if(GM_getValue("mode") == undefined){
-                                    GM_setValue('mode','single');
+                                if(await GM.getValue("mode") == undefined){
+                                    GM.setValue('mode','single');
                                     console.log('set mode:single');
                                 }
                                 
-                                $('#gdt').find('img').css('width',$(window).width()*GM_getValue("width"));
+                                $('#gdt').find('img').css('width',$(window).width()*(await GM.getValue("width")));
 
                             }
                         };
@@ -428,10 +454,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                         }
                     }
 
-                    document.getElementById("gdt").style.textAlign="center";
-                    document.getElementById("gdt").style.maxWidth="100%";
+                    gdt.style.textAlign="center";
+                    gdt.style.maxWidth="100%";
 
-                    document.getElementById('gdo4').innerHTML= ""; //clear origin button(Normal Large)
+                    gdo4.innerHTML= ""; //clear origin button(Normal Large)
 
                     var style = document.createElement('style');
                     style.type = 'text/css';
@@ -559,52 +585,52 @@ text-decoration: none;
 */
 
                     document.getElementById('gdo4').children[0] //when single button click change value of width
-                        .addEventListener('click', function (event) {
-                        GM_setValue("width", "0.7");
-                        GM_setValue("mode",'single');
-                        pic_width(GM_getValue("width"));
+                        .addEventListener('click', async function (event) {
+                        GM.setValue("width", "0.7");
+                        GM.setValue("mode",'single');
+                        pic_width(await GM.getValue("width"));
                         $('wrap').remove();
 
 
 
-                        wrap(GM_getValue("width"));
+                        wrap(await GM.getValue("width"));
 
 
                     });
 
 
                     document.getElementById('gdo4').children[1] //when double button click change value of width
-                        .addEventListener('click', function (event) {
-                        GM_setValue("width", "0.48");
-                        GM_setValue("mode",'double');
-                        pic_width(GM_getValue("width"));
+                        .addEventListener('click', async function (event) {
+                        GM.setValue("width", "0.48");
+                        GM.setValue("mode",'double');
+                        pic_width(await GM.getValue("width"));
                         $('wrap').remove();
 
-                        wrap(GM_getValue("mode"));
+                        wrap(await GM.getValue("mode"));
                     });
 
                     document.getElementById('gdo4').children[2]
-                        .addEventListener('click', function (event) {
-                        var size_width = parseFloat(GM_getValue("width"));
+                        .addEventListener('click', async function (event) {
+                        var size_width = parseFloat(await GM.getValue("width"));
                         if(size_width>0.2 && size_width<0.9){
                             size_width = size_width + 0.1;
-                            GM_setValue("width",size_width);
+                            GM.setValue("width",size_width);
                         }
-
-                        pic_width(GM_getValue("width"));
-                        console.log(GM_getValue("width"));
+                        let _width = await GM.getValue('width');
+                        pic_width(_width);
+                        console.log(_width);
                     });
 
                     document.getElementById('gdo4').children[3]
-                        .addEventListener('click', function (event) {
-                        var size_width = parseFloat(GM_getValue("width"));
+                        .addEventListener('click', async function (event) {
+                        var size_width = parseFloat(await GM.getValue("width"));
                         if(size_width>0.3 && size_width<1){
                             size_width = size_width - 0.1;
-                            GM_setValue("width",size_width);
+                            GM.setValue("width",size_width);
                         }
-
-                        pic_width(GM_getValue("width"));
-                        console.log(GM_getValue("width"));
+                        let _width = await GM.getValue('width');
+                        pic_width(_width);
+                        console.log(_width);
                     });
 
                     function pic_width(width)//change width of pics
@@ -626,14 +652,13 @@ text-decoration: none;
                     g.claenGDT();
                    // if (g.pageNum)
                     //    g.getNextPage('load');
-
                 });
 
-                    wrap(GM_getValue("mode"));
+                wrap(await GM.getValue("mode"));
             }
             else {
                 alert("There are some issue in the script\nplease open an issue on Github");
-                window.open("https://github.com/strong-Ting/Gentle-Viewer/issues");
+                //window.open("https://github.com/strong-Ting/Gentle-Viewer/issues");
             }
             function download_files(lpPage ,imgNum,minPic,maxPic)
             {
@@ -643,16 +668,16 @@ text-decoration: none;
             }
         }
     }
-    const wrap =(width)=>{
+    const wrap = async width =>{
         let img = $('#gdt').find('img');
         let gdt = document.getElementById('gdt');
         for(let i = 0;i<img.length;i++){
             let wrap = document.createElement('wrap');
             wrap.innerHTML='<br>';
-            if(GM_getValue("mode") == 'single'){
+            if(await GM.getValue("mode") == 'single'){
                 gdt.insertBefore(wrap,img[i]);
             }
-            else if(GM_getValue("mode")=='double'){
+            else if(await GM.getValue("mode")=='double'){
                 if(i%2!==1){
                     gdt.insertBefore(wrap,img[i]);
                 }
@@ -667,4 +692,3 @@ text-decoration: none;
         view();
     }
 });
-
