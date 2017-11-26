@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.7
+// @version      0.1.8
 // ==/UserScript==
 
 jQuery(function($) {
@@ -131,9 +131,9 @@ transition: all .2s ease-in-out;
 `;
         $('head').append(style);
         const setCookie = (headers)  => {
-            // only tampermonkey can get cookies from GM_xmlhttpRequest 
+            //
             try{
-                headers.split('\r\n').find(x => x.match('cookie')).replace('set-cookie: ', "").split('\n').map( x => document.cookie = x.replace('.e-hentai.org', '.exhentai.org')); 
+                headers.split('\r\n').find(x => x.match('cookie')).replace('set-cookie: ', "").split('\n').map( x => document.cookie = x.replace('.e-hentai.org', '.exhentai.org'));
             }catch(err){
                 if(debug) console.log(err);
             }
@@ -357,7 +357,7 @@ make sure login success, then click <button class="clearCookie">here</button>
 
 
     function view(){
-      	var gdt = document.querySelector('#gdt');
+				var gdt = document.querySelector('#gdt');
       	var gdd = document.querySelector('#gdd');
       	var gdo4 = document.querySelector('#gdo4');
 
@@ -405,7 +405,7 @@ make sure login success, then click <button class="clearCookie">here</button>
                                     GM.setValue('mode','single');
                                     console.log('set mode:single');
                                 }
-                                
+
                                 $('#gdt').find('img').css('width',$(window).width()*(await GM.getValue("width")));
 
                             }
@@ -463,13 +463,17 @@ make sure login success, then click <button class="clearCookie">here</button>
                     style.type = 'text/css';
                     style.innerHTML = `
 div#gdo4{
-position:absolute;
-width: 135px;
+position:fixed;
+width: 150px;
 height:32px;
-left:-50px;
-top:-40px;
+left:unset;
+right:10px;
+bottom:0px;
+top:unset;
 text-align:right;
 z-index:1;
+background:#34353b;
+border-radius:5%;
 }
 
 
@@ -612,11 +616,11 @@ text-decoration: none;
                     document.getElementById('gdo4').children[2]
                         .addEventListener('click', async function (event) {
                         var size_width = parseFloat(await GM.getValue("width"));
-                        if(size_width>0.2 && size_width<0.9){
+                        if(size_width>0.1 && size_width<1.4){
                             size_width = size_width + 0.1;
                             GM.setValue("width",size_width);
                         }
-                        let _width = await GM.getValue('width');
+												let _width = await GM.getValue('width');
                         pic_width(_width);
                         console.log(_width);
                     });
@@ -624,11 +628,11 @@ text-decoration: none;
                     document.getElementById('gdo4').children[3]
                         .addEventListener('click', async function (event) {
                         var size_width = parseFloat(await GM.getValue("width"));
-                        if(size_width>0.3 && size_width<1){
+                        if(size_width>0.2 && size_width<1.5){
                             size_width = size_width - 0.1;
                             GM.setValue("width",size_width);
                         }
-                        let _width = await GM.getValue('width');
+												let _width = await GM.getValue('width');
                         pic_width(_width);
                         console.log(_width);
                     });
