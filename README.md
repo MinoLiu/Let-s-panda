@@ -12,7 +12,7 @@ a Greasy Fork user script for exhentai
 
 ![1](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/1.png)
 
-#### Download
+#### Download & View
 
 ![2](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/2.png)
 
