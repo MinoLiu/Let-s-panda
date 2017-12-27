@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.8
+// @version      0.1.9
 // ==/UserScript==
 
 jQuery(function($) {
@@ -47,6 +47,12 @@ jQuery(function($) {
      * @type {Boolean}
      */
     var debug = false;
+
+     /**
+      * Viewed
+      * @type {Boolean}
+      */
+    var viewed = false;
 
     const loginPage = () => {
         let div = document.createElement('div');
@@ -357,7 +363,8 @@ make sure login success, then click <button class="clearCookie">here</button>
 
 
     function view(){
-				var gdt = document.querySelector('#gdt');
+        viewed = true;
+		var gdt = document.querySelector('#gdt');
       	var gdd = document.querySelector('#gdd');
       	var gdo4 = document.querySelector('#gdo4');
 
@@ -689,10 +696,26 @@ text-decoration: none;
             }
         }
     }
+    const viewMode = async () => {
+        var view_mode = await GM.getValue('view_mode', true);
+        var view_btn = document.createElement('p');
+        view_btn.className = "g2";
+        view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" style="color:#FF0000" href="#">Viewer ${view_mode ? "Enable" : "Disable"}</a>`;
+        $('#gd5').append(view_btn);
+        $('.panda_view').on('click', async () => {
+            view_mode = await GM.getValue('view_mode', true);
+            GM.setValue('view_mode', !view_mode);
+            $('.panda_view').html(`Viewer ${!view_mode ? "Enable" : "Disable"}`);
+            if(!view_mode && !viewed) view();
+        })
+        if(view_mode){
+            view();
+        }
+    }
     if((e = $('img')).length === 1 && e[0].src === window.location.href){
         loginPage();
     } else if (window.location.href.match(/^https:\/\/e[x-]hentai\.org\/g/)){
         downloadPage();
-        view();
+        viewMode();
     }
 });
