@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.1.9
+// @version      0.2.0
 // ==/UserScript==
 
 jQuery(function($) {
@@ -34,7 +34,7 @@ jQuery(function($) {
      * Linux
      * $ rename 's/\.zip$/\.cbz/' *.zip
      */
-    var outputExt = 'cbz'; // or 'zip'
+    var outputExt = 'zip'; // or 'cbz'
 
     /**
      * Multithreading
@@ -48,11 +48,17 @@ jQuery(function($) {
      */
     var debug = false;
 
-     /**
-      * Viewed
-      * @type {Boolean}
-      */
+    /**
+     * Viewed
+     * @type {Boolean}
+     */
     var viewed = false;
+
+    /**
+     * Reverse images display in double
+     * @type {Boolean}
+     */
+    var reverse = false;
 
     const loginPage = () => {
         let div = document.createElement('div');
@@ -208,6 +214,7 @@ make sure login success, then click <button class="clearCookie">here</button>
         $('body').append(div);
         $('.clearCookie').on('click', clearCookie);
     };
+
     const downloadPage = () => {
         var zip = new JSZip(),
             doc = document,
@@ -242,16 +249,19 @@ make sure login success, then click <button class="clearCookie">here</button>
                 }
             });
         };
+
         const next = () => {
             download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#"> Downloading ${final}/${total}</a>`;
             if (debug) console.log(final, current);
             if (final < current) return;
             (final < total) ? addZip() : genZip();
         };
+
         const end = () => {
             $win.off('beforeunload');
             if (debug) console.timeEnd('eHentai');
-        }
+        };
+
         const genZip = () => {
             zip.generateAsync({
                 type: 'blob'
@@ -269,6 +279,7 @@ make sure login success, then click <button class="clearCookie">here</button>
                 end();
             });
         };
+
         const addZip = () => {
             total = images.length;
             var max = current + threading;
@@ -287,6 +298,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                 });
             }
         };
+
+        /**
+         * Update image download status.
+         */
         const getImageNext = () => {
             download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#">Getting images ${final}/${hrefs.length}</a>`;
             if (debug) console.log(final, current);
@@ -297,6 +312,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                 addZip();
             })();
         };
+
+        /**
+         * Get all images from hrefs.
+         */
         const getImage = () => {
             let max = current + threading;
             if(max > hrefs.length) max = hrefs.length;
@@ -321,6 +340,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                 });
             }
         };
+
+        /**
+         * Get the href of all images from all pages.
+         */
         const getHref = () => {
             let page = document.querySelector('table[class=ptt] tbody tr').childNodes.length-2;
             for(let i = 0 ; i < page; i++){
@@ -328,7 +351,10 @@ make sure login success, then click <button class="clearCookie">here</button>
                     method: "GET",
                     url: `${loc}?p=${i}`,
                     onload: function(response) {
+                        if (debug) console.log(`page ${i+1} detect ${response.responseText}`);
                         let imgs = [...(new DOMParser()).parseFromString(response.responseText, "text/html").querySelectorAll(".gdtm a")];
+                        if (!imgs.length) imgs = [...(new DOMParser()).parseFromString(response.responseText, "text/html").querySelectorAll(".gdtl a")];
+                        if (!imgs.length) { alert("There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"); }
                         imgs.forEach((v) => {
                             hrefs.push(v.href);
                         });
@@ -346,6 +372,7 @@ make sure login success, then click <button class="clearCookie">here</button>
                 });
             }
         };
+
         download.className = "g3 gsp";
         download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_download" href="#">Download</a>`;
         $('#gd5').append(download);
@@ -691,6 +718,9 @@ text-decoration: none;
             else if(await GM.getValue("mode")=='double'){
                 if(i%2!==1){
                     gdt.insertBefore(wrap,img[i]);
+                    if (reverse) {
+                      gdt.insertBefore(img[i+1], img[i])
+                    }
                 }
 
             }
@@ -700,7 +730,7 @@ text-decoration: none;
         var view_mode = await GM.getValue('view_mode', true);
         var view_btn = document.createElement('p');
         view_btn.className = "g2";
-        view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" style="color:#FF0000" href="#">Viewer ${view_mode ? "Enable" : "Disable"}</a>`;
+        view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" style="color:#FF0000" href="#">Viewer ${view_mode ? "Enabled" : "Disabled"}</a>`;
         $('#gd5').append(view_btn);
         $('.panda_view').on('click', async () => {
             view_mode = await GM.getValue('view_mode', true);

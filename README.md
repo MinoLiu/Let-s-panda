@@ -1,5 +1,5 @@
 # Let's panda!
-a Greasy Fork user script for exhentai
+A Greasy Fork user script for exhentai
 
 ### Required Environment
 
@@ -10,11 +10,15 @@ a Greasy Fork user script for exhentai
 
 #### Login
 
-![1](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/1.png)
+![1](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/1.png)
 
 #### Download & View
 
-![2](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/2.png)
+![2](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/2.png)
+
+#### Some configuration
+
+![3](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/3.png)
 
 ### Install This Script
 
