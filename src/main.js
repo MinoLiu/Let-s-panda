@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.2.1
+// @version      0.2.2
 // ==/UserScript==
 
 jQuery(function($) {
@@ -59,6 +59,13 @@ jQuery(function($) {
    * @type {Boolean}
    */
   var reverse = false;
+
+  /**
+   * Enable Viewer load all page of images
+   * Only support page 1
+   * @type {Boolean}
+   */
+  var viewAll = false;
 
   const loginPage = () => {
     let div = document.createElement("div");
@@ -446,15 +453,18 @@ make sure login success, then click <button class="clearCookie">here</button>
     var gdt = document.querySelector("#gdt");
     var gdd = document.querySelector("#gdd");
     var gdo4 = document.querySelector("#gdo4");
-
-    var lpPage = document.querySelectorAll("table.ptt td").length - 2;
+    let childNodes = document.querySelector("table[class=ptt] tbody tr")
+      .childNodes;
+    let lpPage = parseInt(
+      childNodes[childNodes.length - 2].textContent.replace(",", "")
+    );
 
     var data = document
       .querySelector("body div.gtb p.gpc")
       .textContent.split(" ");
 
     var minPic = parseInt(data[1].replace(",", ""));
-    var maxPic = parseInt(data[5].replace(",", ""));
+    var maxPic = parseInt(data[3].replace(",", ""));
 
     var imgNum = parseInt(
       gdd
@@ -554,7 +564,7 @@ make sure login success, then click <button class="clearCookie">here</button>
             } else {
               var img = document.createElement("img");
               this.imgList.push(img);
-              //     gdt.appendChild(img); //cant load all
+              if (viewAll) gdt.appendChild(img);
             }
           }
 
@@ -757,8 +767,7 @@ text-decoration: none;
         g.generateImg(function() {
           g.loadPageUrls(gdt);
           g.claenGDT();
-          // if (g.pageNum)
-          //    g.getNextPage('load');
+          if (g.pageNum && viewAll) g.getNextPage("load");
         });
 
         wrap(await GM.getValue("mode"));
