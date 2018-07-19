@@ -19,10 +19,10 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.2.2
+// @version      0.2.3
 // ==/UserScript==
 
-jQuery(function($) {
+jQuery(function ($) {
   /**
    * Output extension
    * @type {String} zip
@@ -62,7 +62,7 @@ jQuery(function($) {
 
   /**
    * Enable Viewer load all page of images
-   * Only support page 1
+   * Only support at page 1
    * @type {Boolean}
    */
   var viewAll = false;
@@ -203,14 +203,14 @@ make sure login success, then click <button class="clearCookie">here</button>
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
         },
-        onload: function(response) {
+        onload: function (response) {
           if (debug) console.log(response);
           if (/You are now logged/.exec(response.responseText)) {
             setCookie(response.responseHeaders);
           }
           loadding.hidden = true;
         },
-        onerror: function(err) {
+        onerror: function (err) {
           if (debug) console.log(err);
           loadding.hidden = true;
         }
@@ -249,7 +249,10 @@ make sure login success, then click <button class="clearCookie">here</button>
       comicId = location.pathname.match(/\d+/)[0],
       download = document.createElement("p");
 
-    const dlImg = ({ index, url }, success, error) => {
+    const dlImg = ({
+      index,
+      url
+    }, success, error) => {
       var filename = url.replace(/.*\//g, "");
       var extension = filename.split(".").pop();
       filename = ("0000" + index).slice(-4) + "." + extension;
@@ -258,11 +261,11 @@ make sure login success, then click <button class="clearCookie">here</button>
         method: "GET",
         url: url,
         responseType: "arraybuffer",
-        onload: function(response) {
+        onload: function (response) {
           final++;
           success(response, filename);
         },
-        onerror: function(err) {
+        onerror: function (err) {
           final++;
           error(err, filename);
         }
@@ -286,7 +289,7 @@ make sure login success, then click <button class="clearCookie">here</button>
         .generateAsync({
           type: "blob"
         })
-        .then(function(blob) {
+        .then(function (blob) {
           var zipName =
             tit.replace(/\s/g, "_") + "." + comicId + "." + outputExt;
 
@@ -309,16 +312,15 @@ make sure login success, then click <button class="clearCookie">here</button>
       for (current; current < max; current++) {
         dlImg(
           images[current],
-          function(response, filename) {
+          function (response, filename) {
             zip.file(filename, response.response);
             if (debug) console.log(filename, "success");
             next();
           },
-          function(err, filename) {
+          function (err, filename) {
             zip.file(
               filename + "_" + comicId + "_error.gif",
-              "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
-              {
+              "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=", {
                 base64: true
               }
             );
@@ -338,13 +340,13 @@ make sure login success, then click <button class="clearCookie">here</button>
       }</a>`;
       if (debug) console.log(final, current);
       if (final < current) return;
-      final < hrefs.length
-        ? getImage()
-        : (() => {
-            current = 0;
-            final = 0;
-            addZip();
-          })();
+      final < hrefs.length ?
+        getImage() :
+        (() => {
+          current = 0;
+          final = 0;
+          addZip();
+        })();
     };
 
     /**
@@ -358,7 +360,7 @@ make sure login success, then click <button class="clearCookie">here</button>
         GM.xmlHttpRequest({
           method: "GET",
           url: hrefs[current],
-          onload: function(response) {
+          onload: function (response) {
             let imgNo = parseInt(
               response.responseText.match("startpage=(\\d+)").pop()
             );
@@ -373,7 +375,7 @@ make sure login success, then click <button class="clearCookie">here</button>
             final++;
             getImageNext();
           },
-          onerror: function(err) {
+          onerror: function (err) {
             final++;
             getImageNext();
             if (debug) console.log(err);
@@ -395,19 +397,19 @@ make sure login success, then click <button class="clearCookie">here</button>
         GM.xmlHttpRequest({
           method: "GET",
           url: `${loc}?p=${i}`,
-          onload: function(response) {
+          onload: function (response) {
             if (debug)
               console.log(`page ${i + 1} detect ${response.responseText}`);
             let imgs = [
               ...new DOMParser()
-                .parseFromString(response.responseText, "text/html")
-                .querySelectorAll(".gdtm a")
+              .parseFromString(response.responseText, "text/html")
+              .querySelectorAll(".gdtm a")
             ];
             if (!imgs.length)
               imgs = [
                 ...new DOMParser()
-                  .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll(".gdtl a")
+                .parseFromString(response.responseText, "text/html")
+                .querySelectorAll(".gdtl a")
               ];
             if (!imgs.length) {
               alert(
@@ -421,7 +423,7 @@ make sure login success, then click <button class="clearCookie">here</button>
               getImage();
             }
           },
-          onerror: function(err) {
+          onerror: function (err) {
             download.innerHTML =
               '<img src="https://exhentai.org/img/mr.gif"> <a href="#">Get href failed</a>';
             if (i == page - 1) {
@@ -440,7 +442,7 @@ make sure login success, then click <button class="clearCookie">here</button>
       if (threading < 1) threading = 1;
       if (threading > 32) threading = 32;
       if (debug) console.time("eHentai");
-      $win.on("beforeunload", function() {
+      $win.on("beforeunload", function () {
         return "Progress is running...";
       });
       download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#">Start Download</a>`;
@@ -468,36 +470,36 @@ make sure login success, then click <button class="clearCookie">here</button>
 
     var imgNum = parseInt(
       gdd
-        .querySelector("#gdd tr:nth-child(n+6) td.gdt2")
-        .textContent.split(" ")[0]
+      .querySelector("#gdd tr:nth-child(n+6) td.gdt2")
+      .textContent.split(" ")[0]
     );
 
     var pagePic = maxPic - minPic + 1;
 
     var status = "false";
     viewer(
-      document.querySelectorAll("table.ptt td").length - 2,
+      lpPage,
       imgNum,
       minPic,
       maxPic
     );
 
     async function viewer(lpPage, imgNum, minPic, maxPic) {
-      var Gallery = function(pageNum, imgNum, minPic, maxPic) {
+      var Gallery = function (pageNum, imgNum, minPic, maxPic) {
         this.pageNum = pageNum || 0;
         this.imgNum = imgNum || 0;
       };
       Gallery.prototype = {
         imgList: [],
 
-        checkFunctional: function() {
+        checkFunctional: function () {
           return (this.imgNum > 41 && this.pageNum < 2) || this.imgNum !== 0;
         },
-        loadPageUrls: function(element) {
-          [].forEach.call(element.querySelectorAll("a[href]"), function(item) {
+        loadPageUrls: function (element) {
+          [].forEach.call(element.querySelectorAll("a[href]"), function (item) {
             console.log("load work");
             var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = async function() {
+            ajax.onreadystatechange = async function () {
               if (4 == ajax.readyState && 200 == ajax.status) {
                 var imgNo = parseInt(
                   ajax.responseText.match("startpage=(\\d+)").pop()
@@ -529,12 +531,12 @@ make sure login success, then click <button class="clearCookie">here</button>
             ajax.send(null);
           });
         },
-        getNextPage: function() {
+        getNextPage: function () {
           var LoadPageUrls = this.loadPageUrls;
           var download = this.download_file;
           for (var i = 0; i < this.pageNum; ++i) {
             var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = function() {
+            ajax.onreadystatechange = function () {
               if (4 == this.readyState && 200 == this.status) {
                 var dom = new DOMParser().parseFromString(
                   this.responseText,
@@ -547,12 +549,12 @@ make sure login success, then click <button class="clearCookie">here</button>
             ajax.send(null);
           }
         },
-        claenGDT: function() {
+        claenGDT: function () {
           while (gdt.firstChild && gdt.firstChild.className)
             gdt.removeChild(gdt.firstChild);
         },
 
-        generateImg: function(callback) {
+        generateImg: function (callback) {
           for (var i = 0; i < this.imgNum; i++) {
             if (i < maxPic && i >= minPic - 1) {
               var img = document.createElement("img");
@@ -563,6 +565,7 @@ make sure login success, then click <button class="clearCookie">here</button>
               gdt.appendChild(img);
             } else {
               var img = document.createElement("img");
+              img.setAttribute("src", "http://ehgt.org/g/roller.gif");
               this.imgList.push(img);
               if (viewAll) gdt.appendChild(img);
             }
@@ -702,7 +705,7 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[0] //when single button click change value of width
-            .addEventListener("click", async function(event) {
+            .addEventListener("click", async function (event) {
               GM.setValue("width", "0.7");
               GM.setValue("mode", "single");
               pic_width(await GM.getValue("width"));
@@ -714,7 +717,7 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[1] //when double button click change value of width
-            .addEventListener("click", async function(event) {
+            .addEventListener("click", async function (event) {
               GM.setValue("width", "0.48");
               GM.setValue("mode", "double");
               pic_width(await GM.getValue("width"));
@@ -725,7 +728,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[2].addEventListener("click", async function(event) {
+            .children[2].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
@@ -738,7 +741,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[3].addEventListener("click", async function(event) {
+            .children[3].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
@@ -764,7 +767,7 @@ text-decoration: none;
       };
       var g = new Gallery(lpPage, imgNum, minPic, maxPic);
       if (g.checkFunctional()) {
-        g.generateImg(function() {
+        g.generateImg(function () {
           g.loadPageUrls(gdt);
           g.claenGDT();
           if (g.pageNum && viewAll) g.getNextPage("load");
