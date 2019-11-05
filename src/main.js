@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.2.3
+// @version      0.2.4
 // ==/UserScript==
 
 jQuery(function($) {
