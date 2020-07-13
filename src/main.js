@@ -19,10 +19,10 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.2.4
+// @version      0.2.5
 // ==/UserScript==
 
-jQuery(function($) {
+jQuery(function ($) {
   /**
    * Output extension
    * @type {String} zip
@@ -53,19 +53,6 @@ jQuery(function($) {
    * @type {Boolean}
    */
   var viewed = false;
-
-  /**
-   * Reverse images display in double
-   * @type {Boolean}
-   */
-  var reverse = false;
-
-  /**
-   * Enable Viewer load all page of images
-   * Only support at page 1
-   * @type {Boolean}
-   */
-  var viewAll = false;
 
   const loginPage = () => {
     let div = document.createElement("div");
@@ -152,16 +139,17 @@ transition: all .2s ease-in-out;
 }
 `;
     $("head").append(style);
-    const setCookie = headers => {
+    const setCookie = (headers) => {
       //
       try {
         headers
           .split("\r\n")
-          .find(x => x.match("cookie"))
+          .find((x) => x.match("cookie"))
           .replace("set-cookie: ", "")
           .split("\n")
           .map(
-            x => (document.cookie = x.replace(".e-hentai.org", ".exhentai.org"))
+            (x) =>
+              (document.cookie = x.replace(".e-hentai.org", ".exhentai.org"))
           );
       } catch (err) {
         if (debug) console.log(err);
@@ -201,19 +189,19 @@ make sure login success, then click <button class="clearCookie">here</button>
         url: "https://forums.e-hentai.org/index.php?act=Login&CODE=01",
         data: `referer=https://forums.e-hentai.org/index.php?&b=&bt=&UserName=${username.value}&PassWord=${password.value}&CookieDate=1"}`,
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        onload: function(response) {
+        onload: function (response) {
           if (debug) console.log(response);
           if (/You are now logged/.exec(response.responseText)) {
             setCookie(response.responseHeaders);
           }
           loadding.hidden = true;
         },
-        onerror: function(err) {
+        onerror: function (err) {
           if (debug) console.log(err);
           loadding.hidden = true;
-        }
+        },
       });
     });
     login.className = "btn";
@@ -224,7 +212,7 @@ make sure login success, then click <button class="clearCookie">here</button>
     wrapper.append(loadding);
     wrapper.append(login);
     form.append(wrapper);
-    form.addEventListener("submit", e => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
     });
     var image = document.createElement("img");
@@ -262,14 +250,14 @@ make sure login success, then click <button class="clearCookie">here</button>
         method: "GET",
         url: url,
         responseType: "arraybuffer",
-        onload: function(response) {
+        onload: function (response) {
           final++;
           success(response, filename);
         },
-        onerror: function(err) {
+        onerror: function (err) {
           final++;
           error(err, filename);
-        }
+        },
       });
     };
 
@@ -288,9 +276,9 @@ make sure login success, then click <button class="clearCookie">here</button>
     const genZip = () => {
       zip
         .generateAsync({
-          type: "blob"
+          type: "blob",
         })
-        .then(function(blob) {
+        .then(function (blob) {
           var zipName =
             tit.replace(/\s/g, "_") + "." + comicId + "." + outputExt;
 
@@ -313,17 +301,17 @@ make sure login success, then click <button class="clearCookie">here</button>
       for (current; current < max; current++) {
         dlImg(
           images[current],
-          function(response, filename) {
+          function (response, filename) {
             zip.file(filename, response.response);
             if (debug) console.log(filename, "success");
             next();
           },
-          function(err, filename) {
+          function (err, filename) {
             zip.file(
               filename + "_" + comicId + "_error.gif",
               "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
               {
-                base64: true
+                base64: true,
               }
             );
             if (debug) console.log(filename, "error");
@@ -360,7 +348,7 @@ make sure login success, then click <button class="clearCookie">here</button>
         GM.xmlHttpRequest({
           method: "GET",
           url: hrefs[current],
-          onload: function(response) {
+          onload: function (response) {
             let imgNo = parseInt(
               response.responseText.match("startpage=(\\d+)").pop()
             );
@@ -370,16 +358,16 @@ make sure login success, then click <button class="clearCookie">here</button>
             if (debug) console.log(imgNo, "success");
             images.push({
               index: imgNo,
-              url: img.src
+              url: img.src,
             });
             final++;
             getImageNext();
           },
-          onerror: function(err) {
+          onerror: function (err) {
             final++;
             getImageNext();
             if (debug) console.log(err);
-          }
+          },
         });
       }
     };
@@ -397,52 +385,52 @@ make sure login success, then click <button class="clearCookie">here</button>
         GM.xmlHttpRequest({
           method: "GET",
           url: `${loc}?p=${i}`,
-          onload: function(response) {
+          onload: function (response) {
             if (debug)
               console.log(`page ${i + 1} detect ${response.responseText}`);
             let imgs = [
               ...new DOMParser()
                 .parseFromString(response.responseText, "text/html")
-                .querySelectorAll(".gdtm a")
+                .querySelectorAll(".gdtm a"),
             ];
             if (!imgs.length)
               imgs = [
                 ...new DOMParser()
                   .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll(".gdtl a")
+                  .querySelectorAll(".gdtl a"),
               ];
             if (!imgs.length) {
               alert(
                 "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
               );
             }
-            imgs.forEach(v => {
+            imgs.forEach((v) => {
               hrefs.push(v.href);
             });
             if (i == page - 1) {
               getImage();
             }
           },
-          onerror: function(err) {
+          onerror: function (err) {
             download.innerHTML =
               '<img src="https://exhentai.org/img/mr.gif"> <a href="#">Get href failed</a>';
             if (i == page - 1) {
               getImage();
             }
             if (debug) console.log(err);
-          }
+          },
         });
       }
     };
 
-    download.className = "g3 gsp";
+    download.className = "g3";
     download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_download" href="#">Download</a>`;
     $("#gd5").append(download);
     $(".panda_download").on("click", () => {
       if (threading < 1) threading = 1;
       if (threading > 32) threading = 32;
       if (debug) console.time("eHentai");
-      $win.on("beforeunload", function() {
+      $win.on("beforeunload", function () {
         return "Progress is running...";
       });
       download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#">Start Download</a>`;
@@ -480,30 +468,77 @@ make sure login success, then click <button class="clearCookie">here</button>
     viewer(lpPage, imgNum, minPic, maxPic);
 
     async function viewer(lpPage, imgNum, minPic, maxPic) {
-      var Gallery = function(pageNum, imgNum, minPic, maxPic) {
+      var Gallery = function (pageNum, imgNum, minPic, maxPic) {
         this.pageNum = pageNum || 0;
         this.imgNum = imgNum || 0;
+        this.loc = /.*\//.exec(location.href)[0];
       };
+      var viewAll = await GM.getValue("view_all", true);
       Gallery.prototype = {
         imgList: [],
 
-        checkFunctional: function() {
+        checkFunctional: function () {
           return (this.imgNum > 41 && this.pageNum < 2) || this.imgNum !== 0;
         },
-        loadPageUrls: function(element) {
-          [].forEach.call(element.querySelectorAll("a[href]"), function(item) {
+        loadPageUrls: function (element) {
+          [].forEach.call(element.querySelectorAll("a[href]"), function (item) {
             console.log("load work");
             var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = async function() {
+            ajax.onreadystatechange = async function () {
               if (4 == ajax.readyState && 200 == ajax.status) {
                 var imgNo = parseInt(
                   ajax.responseText.match("startpage=(\\d+)").pop()
                 );
-                var src = new DOMParser()
+                var imgDom = new DOMParser()
                   .parseFromString(ajax.responseText, "text/html")
-                  .getElementById("img").src;
-                Gallery.prototype.imgList[imgNo - 1].src = src;
+                  .getElementById("img");
+                var src =
+                  ajax.responseURL +
+                  "?nl=" +
+                  /nl\(\'(.*)\'\)/.exec(imgDom.attributes.onerror.value)[1];
+                Gallery.prototype.imgList[imgNo - 1].setAttribute(
+                  "data-href",
+                  src
+                );
+                Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
+                  imgDom.src;
+                $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
+                  "error",
+                  function () {
+                    var ajax = new XMLHttpRequest();
+                    ajax.onreadystatechange = async function () {
+                      if (4 == ajax.readyState && 200 == ajax.status) {
+                        var imgNo = parseInt(
+                          ajax.responseText.match("startpage=(\\d+)").pop()
+                        );
+                        var imgDom = new DOMParser()
+                          .parseFromString(ajax.responseText, "text/html")
+                          .getElementById("img");
+                        Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
+                          imgDom.src;
 
+                        if ((await GM.getValue("width")) == undefined) {
+                          GM.setValue("width", "0.7");
+                          console.log("set width:0.7");
+                        }
+
+                        if ((await GM.getValue("mode")) == undefined) {
+                          GM.setValue("mode", "single");
+                          console.log("set mode:single");
+                        }
+
+                        $("#gdt")
+                          .find("img")
+                          .css(
+                            "width",
+                            $(window).width() * (await GM.getValue("width"))
+                          );
+                      }
+                    };
+                    ajax.open("GET", src);
+                    ajax.send(null);
+                  }
+                );
                 if ((await GM.getValue("width")) == undefined) {
                   GM.setValue("width", "0.7");
                   console.log("set width:0.7");
@@ -526,12 +561,12 @@ make sure login success, then click <button class="clearCookie">here</button>
             ajax.send(null);
           });
         },
-        getNextPage: function() {
+        getNextPage: function () {
           var LoadPageUrls = this.loadPageUrls;
           var download = this.download_file;
           for (var i = 0; i < this.pageNum; ++i) {
             var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = function() {
+            ajax.onreadystatechange = function () {
               if (4 == this.readyState && 200 == this.status) {
                 var dom = new DOMParser().parseFromString(
                   this.responseText,
@@ -540,29 +575,34 @@ make sure login success, then click <button class="clearCookie">here</button>
                 LoadPageUrls(dom.getElementById("gdt"));
               }
             };
-            ajax.open("GET", location.href + "?p=" + i);
+            ajax.open("GET", this.loc + "?p=" + i);
             ajax.send(null);
           }
         },
-        claenGDT: function() {
+        claenGDT: function () {
           while (gdt.firstChild && gdt.firstChild.className)
             gdt.removeChild(gdt.firstChild);
         },
 
-        generateImg: function(callback) {
+        generateImg: function (callback) {
           for (var i = 0; i < this.imgNum; i++) {
             if (i < maxPic && i >= minPic - 1) {
               var img = document.createElement("img");
+              var a = document.createElement("a");
               img.setAttribute("src", "http://ehgt.org/g/roller.gif");
+              a.appendChild(img);
+              this.imgList.push(a);
 
-              this.imgList.push(img);
-
-              gdt.appendChild(img);
+              gdt.appendChild(a);
             } else {
               var img = document.createElement("img");
+              var a = document.createElement("a");
+
               img.setAttribute("src", "http://ehgt.org/g/roller.gif");
-              this.imgList.push(img);
-              if (viewAll) gdt.appendChild(img);
+              a.appendChild(img);
+
+              this.imgList.push(a);
+              if (viewAll) gdt.appendChild(a);
             }
           }
 
@@ -700,7 +740,7 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[0] //when single button click change value of width
-            .addEventListener("click", async function(event) {
+            .addEventListener("click", async function (event) {
               GM.setValue("width", "0.7");
               GM.setValue("mode", "single");
               pic_width(await GM.getValue("width"));
@@ -712,9 +752,11 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[1] //when double button click change value of width
-            .addEventListener("click", async function(event) {
-              GM.setValue("width", "0.48");
+            .addEventListener("click", async function (event) {
+              GM.setValue("width", "0.49");
               GM.setValue("mode", "double");
+              let view_reverse = await GM.getValue("view_reverse", true);
+              GM.setValue("view_reverse", !view_reverse);
               pic_width(await GM.getValue("width"));
               $("wrap").remove();
 
@@ -723,7 +765,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[2].addEventListener("click", async function(event) {
+            .children[2].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
@@ -736,7 +778,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[3].addEventListener("click", async function(event) {
+            .children[3].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
@@ -758,11 +800,13 @@ text-decoration: none;
           }
 
           callback && callback();
-        }
+        },
       };
       var g = new Gallery(lpPage, imgNum, minPic, maxPic);
+
       if (g.checkFunctional()) {
-        g.generateImg(function() {
+        var viewAll = await GM.getValue("view_all", true);
+        g.generateImg(function () {
           g.loadPageUrls(gdt);
           g.claenGDT();
           if (g.pageNum && viewAll) g.getNextPage("load");
@@ -783,9 +827,22 @@ text-decoration: none;
       }
     }
   }
-  const wrap = async width => {
-    let img = $("#gdt").find("img");
+
+  var switchWrap = false;
+
+  const wrap = async (width) => {
+    let img = $("#gdt").find("a");
     let gdt = document.getElementById("gdt");
+    if (switchWrap == true) {
+      for (let i = 0; i < img.length; i++) {
+        if (i % 2 !== 1) {
+          gdt.insertBefore(img[i + 1], img[i]);
+        }
+      }
+      switchWrap = false;
+    }
+    img = $("#gdt").find("a");
+    let view_reverse = await GM.getValue("view_reverse", true);
     for (let i = 0; i < img.length; i++) {
       let wrap = document.createElement("wrap");
       wrap.innerHTML = "<br>";
@@ -794,31 +851,75 @@ text-decoration: none;
       } else if ((await GM.getValue("mode")) == "double") {
         if (i % 2 !== 1) {
           gdt.insertBefore(wrap, img[i]);
-          if (reverse) {
+          if (view_reverse) {
+            switchWrap = true;
             gdt.insertBefore(img[i + 1], img[i]);
           }
         }
       }
     }
   };
+
+  const adjustGmid = () => {
+    var height = $("#gd5").outerHeight(true);
+    $("#gmid").height(height);
+    $("#gd4").height(height);
+  };
+
+  const viewAllMode = async () => {
+    var view_all_btn = document.createElement("p");
+    var view_all = await GM.getValue("view_all", true);
+
+    view_all_btn.className = "g3";
+    view_all_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view_all" href="#">Viewer for All ${
+      view_all ? "Enabled" : "Disabled"
+    }</a>`;
+    $("#gd5").append(view_all_btn);
+
+    $(".panda_view_all").on("click", async () => {
+      view_all = await GM.getValue("view_all", true);
+      GM.setValue("view_all", !view_all);
+      $(".panda_view_all").html(
+        `Viewer for All ${!view_all ? "Enabled" : "Disabled"}`
+      );
+      window.location.reload(true);
+    });
+
+    adjustGmid();
+  };
   const viewMode = async () => {
     var view_mode = await GM.getValue("view_mode", true);
     var view_btn = document.createElement("p");
-    view_btn.className = "g2";
-    view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" style="color:#FF0000" href="#">Viewer ${
+    view_btn.className = "g3";
+    view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" href="#">Viewer ${
       view_mode ? "Enabled" : "Disabled"
     }</a>`;
+
     $("#gd5").append(view_btn);
+
     $(".panda_view").on("click", async () => {
       view_mode = await GM.getValue("view_mode", true);
       GM.setValue("view_mode", !view_mode);
-      $(".panda_view").html(`Viewer ${!view_mode ? "Enable" : "Disable"}`);
-      if (!view_mode && !viewed) view();
+      $(".panda_view").html(`Viewer ${!view_mode ? "Enabled" : "Disabled"}`);
+      if (view_mode) {
+        window.location.reload(true);
+      }
+      if (!view_mode && !viewed) {
+        viewAllMode();
+        view();
+      }
     });
+
+    if (view_mode) {
+      viewAllMode();
+    }
+
+    adjustGmid();
     if (view_mode) {
       view();
     }
   };
+
   if ((e = $("img")).length === 0 && (e = $("dev")).length === 0) {
     loginPage();
   } else if (window.location.href.match(/^https:\/\/e[x-]hentai\.org\/g/)) {
