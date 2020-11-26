@@ -19,7 +19,7 @@
 // @grant        GM.getValue
 // @connect      *
 // @run-at       document-end
-// @version      0.2.5
+// @version      0.2.6
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -862,6 +862,7 @@ text-decoration: none;
 
   const adjustGmid = () => {
     var height = $("#gd5").outerHeight(true);
+    height = height >= 330 ? height : 330;
     $("#gmid").height(height);
     $("#gd4").height(height);
   };
