@@ -36,7 +36,7 @@ A Greasy Fork user script for exhentai
 * `Viewer page(s): All`   
     * Load images for all pages  
     * e.g. Showing 1 - 20 of 41 images it will load 1 - 41 images in current page  
-* `Viewer page(s): All`   
+* `Viewer page(s): One`   
     * Load images for current page  
     * e.g. Showing 1 - 20 of 41 images it will load 1 - 20 images in current page  
 
