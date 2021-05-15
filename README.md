@@ -27,7 +27,7 @@ A Greasy Fork user script for exhentai
 ![1](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/1.png)
 
 #### Download
-* Just click "Download" text
+* Just click "Download" text  
 ![7](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/7.png)
 
 #### Viewer
