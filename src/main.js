@@ -2,7 +2,9 @@
 // @name         Let's panda!
 // @namespace    https://github.com/Sean2525/Let-s-panda
 // @author       sean2525, strong-Ting
-// @description  A login, view, download tool for exhentai
+// @description  A login, view, download tool for exhentai & e-hentai
+// @description:zh-tw 一個用於exhentai和e-hentai的登入、查看、下載的工具
+// @description:zh-cn 一个用于exhentai和e-hentai的登录、查看、下载的工具
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.2.1.slim.min.js
 // @include      https://exhentai.org/
@@ -21,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.7
+// @version      0.2.8
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -50,12 +52,8 @@ jQuery(function ($) {
    */
   var debug = false;
 
-  /**
-   * Viewed
-   * @type {Boolean}
-   */
-  var viewed = false;
 
+  var viewed = false;
   const loginPage = () => {
     let div = document.createElement("div");
     div.className = "main";
