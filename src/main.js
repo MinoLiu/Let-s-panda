@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.8
+// @version      0.2.9
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -755,16 +755,16 @@ text-decoration: none;
           double_pic.className = "double";
           double_pic.innerHTML = "";
           gdo4.appendChild(double_pic);
+          
+          var size_pic_reduce = document.createElement("button");
+          size_pic_reduce.className = "size_btn";
+          size_pic_reduce.innerHTML += "-";
+          gdo4.appendChild(size_pic_reduce);
 
           var size_pic_add = document.createElement("button");
           size_pic_add.className = "size_btn";
           size_pic_add.innerHTML += "+";
           gdo4.appendChild(size_pic_add);
-
-          var size_pic_reduce = document.createElement("button");
-          size_pic_reduce.className = "size_btn";
-          size_pic_reduce.innerHTML += "-";
-          gdo4.appendChild(size_pic_reduce);
 
           /*
                               const wrap =(width)=>{
@@ -814,7 +814,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[2].addEventListener("click", async function (event) {
+            .children[3].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
@@ -827,7 +827,7 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[3].addEventListener("click", async function (event) {
+            .children[2].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
