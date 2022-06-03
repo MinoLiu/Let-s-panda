@@ -231,12 +231,12 @@ info.style.color = "white";
           if (debug) console.log(response);
           if (/You are now logged/.exec(response.responseText)) {
             error.style = "color:green";
-            error.innerText = "Login succeeded: you will be redriect to exhentai.org in 3 seconds, if you can't access exhentai, don't use the private browsing. "
-            GM.notification("You will be redriect to exhentai.org in 3 seconds, if you can't access exhentai, don't use the private browsing", "Login succeeded");
+            error.innerText = "Login succeeded: you will be redirected to exhentai.org in 3 seconds, if you can't access exhentai, don't use private browsing. "
+            GM.notification("You will be redirected to exhentai.org in 3 seconds; if you can't access exhentai, don't use private browsing", "Login succeeded");
             setCookie(response.responseHeaders);
           } else if (/IF YOU DO NOT SEE THE CAPTCHA/.exec(response.responseText)) {
             error.style = "color:red";
-            error.innerText = "Login failed: Please driect visit forums and log in, the reCaptcha has been enabled."
+            error.innerText = "Login failed: Please visit the forums directly and log in from there; reCaptcha has been enabled."
           }
           else {
             error.style = "color:red";
@@ -248,7 +248,7 @@ info.style.color = "white";
         onerror: function (err) {
           console.error(err);
           error.style = "color:red";
-          error.innerText("Login got error: Please contact me on https://github.com/Sean2525/Let-s-panda/issues");
+          error.innerText("Login got error: Please contact me at https://github.com/Sean2525/Let-s-panda/issues");
           loadding.hidden = true;
         },
       });
