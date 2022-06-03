@@ -204,8 +204,8 @@ transition: all .2s ease-in-out;
     let error = document.createElement("p");
     info.innerHTML = `
     <center>
-    If you can't log in, please visit to <a target="_blank" href="https://forums.e-hentai.org/index.php?act=Login&CODE=00"  class='btn-blue'>Forums</a> and log in. <br >
-Please make sure you are logged in successfully, then click this <button class="clearCookie btn-blue">button</button>
+    If you can't log in, please visit the <a target="_blank" href="https://forums.e-hentai.org/index.php?act=Login&CODE=00"  class='btn-blue'>Forums</a> and log in from there. <br >
+Please make sure you are logged in successfully and then click this <button class="clearCookie btn-blue">button</button>
     </center>
 `;
 info.style.color = "white";
