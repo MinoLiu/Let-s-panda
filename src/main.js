@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.9
+// @version      0.2.10
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -286,6 +286,7 @@ info.style.color = "white";
       images = [],
       total = 0,
       final = 0,
+      failed = 0,
       hrefs = [],
       comicId = location.pathname.match(/\d+/)[0],
       download = document.createElement("p");
@@ -304,8 +305,8 @@ info.style.color = "white";
           success(response, filename);
         },
         onerror: function (err) {
-          final++;
-          error(err, filename);
+            final++;
+            error(err, filename);
         },
       });
     };
@@ -319,6 +320,9 @@ info.style.color = "white";
 
     const end = () => {
       $win.off("beforeunload");
+      if(failed > 0){
+        alert("Some pages download failed, please unzip and check!");
+      }
       if (debug) console.timeEnd("eHentai");
     };
 
@@ -356,15 +360,28 @@ info.style.color = "white";
             next();
           },
           function (err, filename) {
-            zip.file(
-              filename + "_" + comicId + "_error.gif",
-              "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
-              {
-                base64: true,
+            final--;
+            // retry for once
+            dlImg(
+              images[current],
+              function (response, filename) {
+                zip.file(filename, response.response);
+                if (debug) console.log(filename, "success");
+                next();
+              },
+              function (err, filename) {
+                failed++;
+                zip.file(
+                  filename + "_" + comicId + "_error.gif",
+                  "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
+                  {
+                    base64: true,
+                  }
+                );
+                if (debug) console.log(filename, "error");
+                next();
               }
             );
-            if (debug) console.log(filename, "error");
-            next();
           }
         );
       }
