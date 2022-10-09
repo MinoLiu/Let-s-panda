@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.10
+// @version      0.2.11
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -184,7 +184,7 @@ transition: all .2s ease-in-out;
       }
       document.cookie =
         "yay=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.exhentai.org; path=/; secure";
-      
+
       setTimeout(function () { window.location.reload() }, 3000);
     };
     const clearCookie = () => {
@@ -208,7 +208,7 @@ transition: all .2s ease-in-out;
 Please make sure you are logged in successfully and then click this <button class="clearCookie btn-blue">button</button>
     </center>
 `;
-info.style.color = "white";
+    info.style.color = "white";
     username.type = "text";
     username.className = "input";
     password.type = "password";
@@ -305,8 +305,8 @@ info.style.color = "white";
           success(response, filename);
         },
         onerror: function (err) {
-            final++;
-            error(err, filename);
+          final++;
+          error(err, filename);
         },
       });
     };
@@ -320,7 +320,7 @@ info.style.color = "white";
 
     const end = () => {
       $win.off("beforeunload");
-      if(failed > 0){
+      if (failed > 0) {
         alert("Some pages download failed, please unzip and check!");
       }
       if (debug) console.timeEnd("eHentai");
@@ -538,6 +538,7 @@ info.style.color = "white";
         this.pageNum = pageNum || 0;
         this.imgNum = imgNum || 0;
         this.loc = /.*\//.exec(location.href)[0];
+        this.padding = false;
       };
       var viewAll = await GM.getValue("view_all", true);
       Gallery.prototype = {
@@ -682,7 +683,7 @@ info.style.color = "white";
           style.innerHTML = `
 div#gdo4{
 position:fixed;
-width: 150px;
+width: 180px;
 height:32px;
 left:unset;
 right:10px;
@@ -754,6 +755,18 @@ background: #4f535b;
 text-decoration: none;
 }
 
+
+.pad_pic {
+height: 32px;
+width: 32px;
+border-radius: 100%;
+//font-family: Arial;
+color: #ffffff;
+font-size: 16px;
+background: #4f535b;
+text-decoration: none;
+}
+
 .size_btn:hover {
 background: #a9adb1;
 text-decoration: none;
@@ -772,7 +785,12 @@ text-decoration: none;
           double_pic.className = "double";
           double_pic.innerHTML = "";
           gdo4.appendChild(double_pic);
-          
+
+          var pad_pic = document.createElement("button");
+          pad_pic.className = "pad_pic";
+          pad_pic.innerHTML += "p";
+          gdo4.appendChild(pad_pic);
+
           var size_pic_reduce = document.createElement("button");
           size_pic_reduce.className = "size_btn";
           size_pic_reduce.innerHTML += "-";
@@ -829,12 +847,36 @@ text-decoration: none;
               wrap(await GM.getValue("mode"));
             });
 
+          var pad_img = document.createElement("img");
+          var pad_a = document.createElement("a");
+          pad_a.appendChild(pad_img);
+
+          document
+            .getElementById("gdo4")
+            .children[2].addEventListener("click", async (event) => {
+              this.padding = !this.padding;
+              const view_reverse = await GM.getValue("view_reverse", true);
+              await GM.setValue("view_reverse", false);
+              $("wrap").remove();
+              await wrap(await GM.getValue("mode"));
+              $("wrap").remove();
+              if (this.padding) {
+                this.imgList.unshift(pad_a);
+                gdt.insertBefore(pad_a, gdt.firstChild);
+              } else {
+                this.imgList.shift();
+                gdt.removeChild(pad_a);
+              }
+              await GM.setValue("view_reverse", view_reverse);
+              await wrap(await GM.getValue("mode"));
+            });
+
           document
             .getElementById("gdo4")
             .children[3].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
-              if (size_width > 0.1 && size_width < 1.4) {
-                size_width = size_width + 0.1;
+              if (size_width > 0.2 && size_width < 1.5) {
+                size_width = size_width - 0.1;
                 GM.setValue("width", size_width);
               }
               let _width = await GM.getValue("width");
@@ -844,10 +886,10 @@ text-decoration: none;
 
           document
             .getElementById("gdo4")
-            .children[2].addEventListener("click", async function (event) {
+            .children[4].addEventListener("click", async function (event) {
               var size_width = parseFloat(await GM.getValue("width"));
-              if (size_width > 0.2 && size_width < 1.5) {
-                size_width = size_width - 0.1;
+              if (size_width > 0.1 && size_width < 1.4) {
+                size_width = size_width + 0.1;
                 GM.setValue("width", size_width);
               }
               let _width = await GM.getValue("width");
@@ -900,7 +942,7 @@ text-decoration: none;
     let img = $("#gdt").find("a");
     let gdt = document.getElementById("gdt");
     if (switchWrap == true) {
-      for (let i = 0; i < img.length; i++) {
+      for (let i = 0; i < img.length - 1; i++) {
         if (i % 2 !== 1) {
           gdt.insertBefore(img[i + 1], img[i]);
         }
@@ -917,7 +959,7 @@ text-decoration: none;
       } else if ((await GM.getValue("mode")) == "double") {
         if (i % 2 !== 1) {
           gdt.insertBefore(wrap, img[i]);
-          if (view_reverse) {
+          if (view_reverse && i != img.length - 1) {
             switchWrap = true;
             gdt.insertBefore(img[i + 1], img[i]);
           }
