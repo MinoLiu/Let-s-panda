@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.11
+// @version      0.2.12
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -280,7 +280,7 @@ Please make sure you are logged in successfully and then click this <button clas
       doc = document,
       tit = doc.title,
       $win = $(window),
-      loc = /.*\//.exec(doc.location.href)[0],
+      loc = /https?:\/\/e[x-]hentai\.org\/g\/\d+\/\w+/.exec(doc.location.href)[0],
       prevZip = false,
       current = 0,
       images = [],
@@ -453,7 +453,7 @@ Please make sure you are logged in successfully and then click this <button clas
           url: `${loc}?p=${i}`,
           onload: function (response) {
             if (debug)
-              console.log(`page ${i + 1} detect ${response.responseText}`);
+              console.log(`page ${loc}?p=${i} detect ${response.responseText}`);
             let imgs = [
               ...new DOMParser()
                 .parseFromString(response.responseText, "text/html")
@@ -503,6 +503,7 @@ Please make sure you are logged in successfully and then click this <button clas
       getHref();
     });
   };
+  
 
   function view() {
     viewed = true;
@@ -537,7 +538,7 @@ Please make sure you are logged in successfully and then click this <button clas
       var Gallery = function (pageNum, imgNum, minPic, maxPic) {
         this.pageNum = pageNum || 0;
         this.imgNum = imgNum || 0;
-        this.loc = /.*\//.exec(location.href)[0];
+        this.loc = /https?:\/\/e[x-]hentai\.org\/g\/\d+\/\w+/.exec(location.href)[0];
         this.padding = false;
       };
       var viewAll = await GM.getValue("view_all", true);
