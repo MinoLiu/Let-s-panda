@@ -312,7 +312,7 @@ Please make sure you are logged in successfully and then click this <button clas
     };
 
     const next = () => {
-      download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#"> Downloading ${final}/${total}</a>`;
+      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#"> Downloading ${final}/${total}</a>`;
       if (debug) console.log(final, current);
       if (final < current) return;
       final < total ? addZip() : genZip();
@@ -340,7 +340,7 @@ Please make sure you are logged in successfully and then click this <button clas
 
           saveAs(blob, zipName);
           if (debug) console.log("COMPLETE");
-          download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="${window.URL.createObjectURL(
+          download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="${window.URL.createObjectURL(
             prevZip
           )}" download="${zipName}"> Download completed!</a>`;
           end();
@@ -391,7 +391,7 @@ Please make sure you are logged in successfully and then click this <button clas
      * Update image download status.
      */
     const getImageNext = () => {
-      download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#">Getting images ${final}/${hrefs.length}</a>`;
+      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Getting images ${final}/${hrefs.length}</a>`;
       if (debug) console.log(final, current);
       if (final < current) return;
       final < hrefs.length
@@ -479,7 +479,7 @@ Please make sure you are logged in successfully and then click this <button clas
           },
           onerror: function (err) {
             download.innerHTML =
-              '<img src="https://exhentai.org/img/mr.gif"> <a href="#">Get href failed</a>';
+              '<span style="margin-left:10px;">▶</span> <a href="#">Get href failed</a>';
             if (i == page - 1) {
               getImage();
             }
@@ -490,7 +490,7 @@ Please make sure you are logged in successfully and then click this <button clas
     };
 
     download.className = "g3";
-    download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_download" href="#">Download</a>`;
+    download.innerHTML = `<span style="margin-left:10px;">▶</span> <a class="panda_download" href="#">Download</a>`;
     $("#gd5").append(download);
     $(".panda_download").on("click", () => {
       if (threading < 1) threading = 1;
@@ -499,7 +499,7 @@ Please make sure you are logged in successfully and then click this <button clas
       $win.on("beforeunload", function () {
         return "Progress is running...";
       });
-      download.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a href="#">Start Download</a>`;
+      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Start Download</a>`;
       getHref();
     });
   };
@@ -981,7 +981,7 @@ text-decoration: none;
     var view_all = await GM.getValue("view_all", true);
 
     view_all_btn.className = "g3";
-    view_all_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view_all" href="#">Viewer page(s): ${view_all ? "All" : "One"}</a>`;
+    view_all_btn.innerHTML = `<span style="margin-left:10px;">▶</span> <a class="panda_view_all" href="#">Viewer page(s): ${view_all ? "All" : "One"}</a>`;
     $("#gd5").append(view_all_btn);
 
     $(".panda_view_all").on("click", async () => {
@@ -999,7 +999,7 @@ text-decoration: none;
     var view_mode = await GM.getValue("view_mode", true);
     var view_btn = document.createElement("p");
     view_btn.className = "g3";
-    view_btn.innerHTML = `<img src="https://exhentai.org/img/mr.gif"> <a class="panda_view" href="#">Viewer ${view_mode ? "Enabled" : "Disabled"
+    view_btn.innerHTML = `<span style="margin-left:10px;">▶</span> <a class="panda_view" href="#">Viewer ${view_mode ? "Enabled" : "Disabled"
       }</a>`;
 
     $("#gd5").append(view_btn);
