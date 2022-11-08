@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.12
+// @version      0.2.13
 // ==/UserScript==
 
 jQuery(function ($) {
