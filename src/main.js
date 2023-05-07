@@ -595,12 +595,7 @@ Please make sure you are logged in successfully and then click this <button clas
                           console.log("set mode:single");
                         }
 
-                        $("#gdt")
-                          .find("img")
-                          .css(
-                            "width",
-                            $(window).width() * (await GM.getValue("width"))
-                          );
+                        await resizeImg(await GM.getValue("width"))
                       }
                     };
                     ajax.open("GET", src);
@@ -617,12 +612,7 @@ Please make sure you are logged in successfully and then click this <button clas
                   console.log("set mode:single");
                 }
 
-                $("#gdt")
-                  .find("img")
-                  .css(
-                    "width",
-                    $(window).width() * (await GM.getValue("width"))
-                  );
+                await resizeImg(await GM.getValue("width"))
               }
             };
             ajax.open("GET", item.href);
@@ -684,7 +674,7 @@ Please make sure you are logged in successfully and then click this <button clas
           style.innerHTML = `
 div#gdo4{
 position:fixed;
-width: 180px;
+width: 212px;
 height:32px;
 left:unset;
 right:10px;
@@ -792,6 +782,11 @@ text-decoration: none;
           pad_pic.innerHTML += "p";
           gdo4.appendChild(pad_pic);
 
+          var full_pic = document.createElement("button");
+          full_pic.className = "pad_pic";
+          full_pic.innerHTML += "f";
+          gdo4.appendChild(full_pic);
+
           var size_pic_reduce = document.createElement("button");
           size_pic_reduce.className = "size_btn";
           size_pic_reduce.innerHTML += "-";
@@ -828,7 +823,7 @@ text-decoration: none;
             .addEventListener("click", async function (event) {
               GM.setValue("width", "0.7");
               GM.setValue("mode", "single");
-              pic_width(await GM.getValue("width"));
+              await pic_width(await GM.getValue("width"));
               $("wrap").remove();
 
               wrap(await GM.getValue("width"));
@@ -842,7 +837,7 @@ text-decoration: none;
               GM.setValue("mode", "double");
               let view_reverse = await GM.getValue("view_reverse", true);
               GM.setValue("view_reverse", !view_reverse);
-              pic_width(await GM.getValue("width"));
+              await pic_width(await GM.getValue("width"));
               $("wrap").remove();
 
               wrap(await GM.getValue("mode"));
@@ -875,36 +870,43 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[3].addEventListener("click", async function (event) {
+              GM.setValue("full_image", true);
+              await pic_width(0);
+            });
+
+          document
+            .getElementById("gdo4")
+            .children[4].addEventListener("click", async function (event) {
+              GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
                 GM.setValue("width", size_width);
               }
               let _width = await GM.getValue("width");
-              pic_width(_width);
+              await pic_width(_width);
               console.log(_width);
             });
 
           document
             .getElementById("gdo4")
-            .children[4].addEventListener("click", async function (event) {
+            .children[5].addEventListener("click", async function (event) {
+              GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
                 GM.setValue("width", size_width);
               }
               let _width = await GM.getValue("width");
-              pic_width(_width);
+              await pic_width(_width);
               console.log(_width);
             });
 
-          function pic_width(
+          async function pic_width(
             width //change width of pics
           ) {
             for (var i = maxPic - minPic + 1; i > 0; i--) {
-              $("#gdt")
-                .find("img")
-                .css("width", $(window).width() * width);
+              await resizeImg(width)
             }
           }
 
@@ -968,6 +970,19 @@ text-decoration: none;
       }
     }
   };
+
+  const resizeImg = async (width) => {
+    const full_image = await GM.getValue("full_image");
+    if (full_image == true) {
+      $("#gdt")
+        .find("img")
+        .css({ "height": "100vh", "width": "auto" });
+    } else {
+      $("#gdt")
+        .find("img")
+        .css({"height": "auto", "width": $(window).width() * width});
+    }
+  }
 
   const adjustGmid = () => {
     var height = $("#gd5").outerHeight(true);
