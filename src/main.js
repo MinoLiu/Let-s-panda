@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.14
+// @version      0.2.15
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -503,10 +503,12 @@ Please make sure you are logged in successfully and then click this <button clas
       getHref();
     });
   };
-  
+
 
   function view() {
     viewed = true;
+    if (threading < 1) threading = 1;
+    if (threading > 32) threading = 32;
     var gdt = document.querySelector("#gdt");
     var gdd = document.querySelector("#gdd");
     var gdo4 = document.querySelector("#gdo4");
@@ -540,104 +542,193 @@ Please make sure you are logged in successfully and then click this <button clas
         this.imgNum = imgNum || 0;
         this.loc = /https?:\/\/e[x-]hentai\.org\/g\/\d+\/\w+/.exec(location.href)[0];
         this.padding = false;
+        this.current = 0;
+        this.final = 0;
       };
       var viewAll = await GM.getValue("view_all", true);
       Gallery.prototype = {
+        imgHref: [],
         imgList: [],
-
+        retry: 0,
+        getAllHref: function (nextID) {
+          if (nextID >= this.pageNum) {
+            this.loadNextImage();
+            return;
+          }
+          var that = this;
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: `${this.loc}?p=${nextID}`,
+            onload: function (response) {
+              if (debug)
+                console.log(`page ${that.loc}?p=${nextID} detect ${response.responseText}`);
+              let imgs = [
+                ...new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelectorAll(".gdtm a"),
+              ];
+              if (!imgs.length)
+                imgs = [
+                  ...new DOMParser()
+                    .parseFromString(response.responseText, "text/html")
+                    .querySelectorAll(".gdtl a"),
+                ];
+              if (!imgs.length) {
+                alert(
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                );
+              }
+              imgs.forEach((v) => {
+                that.imgHref.push(v.href);
+              });
+              that.getAllHref(nextID + 1);
+            },
+            onerror: function (err) {
+              if (debug) console.log(err);
+              that.retry++;
+              if (that.retry > 2) {
+                alert(`Page number ${nextID + 1} load failed for 3 times.`);
+                that.getAllHref(nextID + 1);
+              } else {
+                that.getAllHref(nextID);
+              }
+            },
+          });
+        },
+        getHref: function (pageID) {
+          var that = this;
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: `${this.loc}?p=${pageID}`,
+            onload: function (response) {
+              if (debug)
+                console.log(`page ${that.loc}?p=${pageID} detect ${response.responseText}`);
+              let imgs = [
+                ...new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelectorAll(".gdtm a"),
+              ];
+              if (!imgs.length)
+                imgs = [
+                  ...new DOMParser()
+                    .parseFromString(response.responseText, "text/html")
+                    .querySelectorAll(".gdtl a"),
+                ];
+              if (!imgs.length) {
+                alert(
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                );
+              }
+              imgs.forEach((v) => {
+                that.imgHref.push(v.href);
+              });
+              that.loadNextImage();
+            },
+            onerror: function (err) {
+              that.loadNextImage();
+              if (debug) console.log(err);
+            },
+          });
+        },
         checkFunctional: function () {
           return (this.imgNum > 41 && this.pageNum < 2) || this.imgNum !== 0;
         },
-        loadPageUrls: function (element) {
-          [].forEach.call(element.querySelectorAll("a[href]"), function (item) {
-            console.log("load work");
-            var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = async function () {
-              if (4 == ajax.readyState && 200 == ajax.status) {
-                var imgNo = parseInt(
-                  ajax.responseText.match("startpage=(\\d+)").pop()
-                );
-                var imgDom = new DOMParser()
-                  .parseFromString(ajax.responseText, "text/html")
-                  .getElementById("img");
-                var src =
-                  ajax.responseURL +
-                  "?nl=" +
-                  /nl\(\'(.*)\'\)/.exec(imgDom.attributes.onerror.value)[1];
-                Gallery.prototype.imgList[imgNo - 1].setAttribute(
-                  "data-href",
-                  src
-                );
-                Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
-                  imgDom.src;
-                $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
-                  "error",
-                  function () {
-                    var ajax = new XMLHttpRequest();
-                    ajax.onreadystatechange = async function () {
-                      if (4 == ajax.readyState && 200 == ajax.status) {
-                        var imgNo = parseInt(
-                          ajax.responseText.match("startpage=(\\d+)").pop()
-                        );
-                        var imgDom = new DOMParser()
-                          .parseFromString(ajax.responseText, "text/html")
-                          .getElementById("img");
-                        Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
-                          imgDom.src;
+        loadNextImage: function () {
+          if (this.final < this.current) {
+            return;
+          }
+          this.loadPageUrls();
+        },
+        onSucceed: async function (response, href) {
+          let imgNo = parseInt(
+            response.responseText.match("startpage=(\\d+)").pop()
+          );
+          let img = new DOMParser()
+            .parseFromString(response.responseText, "text/html")
+            .querySelector("#img");
+          if (debug) console.log(imgNo, "success");
+          var src =
+            href +
+            "?nl=" +
+            /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
+          Gallery.prototype.imgList[imgNo - 1].setAttribute(
+            "data-href",
+            src
+          );
+          Gallery.prototype.imgList[imgNo - 1].childNodes[0].src = img.src;
+          $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
+            "error",
+            function () {
+              var ajax = new XMLHttpRequest();
+              ajax.onreadystatechange = async function () {
+                if (4 == ajax.readyState && 200 == ajax.status) {
+                  var imgNo = parseInt(
+                    ajax.responseText.match("startpage=(\\d+)").pop()
+                  );
+                  var imgDom = new DOMParser()
+                    .parseFromString(ajax.responseText, "text/html")
+                    .getElementById("img");
+                  Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
+                    imgDom.src;
 
-                        if ((await GM.getValue("width")) == undefined) {
-                          GM.setValue("width", "0.7");
-                          console.log("set width:0.7");
-                        }
-
-                        if ((await GM.getValue("mode")) == undefined) {
-                          GM.setValue("mode", "single");
-                          console.log("set mode:single");
-                        }
-
-                        await resizeImg(await GM.getValue("width"))
-                      }
-                    };
-                    ajax.open("GET", src);
-                    ajax.send(null);
+                  if ((await GM.getValue("width")) == undefined) {
+                    GM.setValue("width", "0.7");
+                    console.log("set width:0.7");
                   }
-                );
-                if ((await GM.getValue("width")) == undefined) {
-                  GM.setValue("width", "0.7");
-                  console.log("set width:0.7");
-                }
 
-                if ((await GM.getValue("mode")) == undefined) {
-                  GM.setValue("mode", "single");
-                  console.log("set mode:single");
-                }
+                  if ((await GM.getValue("mode")) == undefined) {
+                    GM.setValue("mode", "single");
+                    console.log("set mode:single");
+                  }
 
-                await resizeImg(await GM.getValue("width"))
-              }
-            };
-            ajax.open("GET", item.href);
-            ajax.send(null);
+                  await resizeImg(await GM.getValue("width"))
+                }
+              };
+              ajax.open("GET", src);
+              ajax.send(null);
+            }
+          );
+
+          this.loadNextImage();
+        },
+        onFailed: function (err, href) {
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: href,
+            responseType: "document",
+            onload: function (response) {
+              that.onSucceed(response, href);
+            },
+            onerror: function (err) {
+              if (debug) console.log(err);
+              this.loadNextImage();
+            },
           });
         },
-        getNextPage: function () {
-          var LoadPageUrls = this.loadPageUrls;
-          var download = this.download_file;
-          for (var i = 0; i < this.pageNum; ++i) {
-            var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = function () {
-              if (4 == this.readyState && 200 == this.status) {
-                var dom = new DOMParser().parseFromString(
-                  this.responseText,
-                  "text/html"
-                );
-                LoadPageUrls(dom.getElementById("gdt"));
-              }
-            };
-            ajax.open("GET", this.loc + "?p=" + i);
-            ajax.send(null);
+        loadPageUrls: function () {
+          if (debug) {
+            console.log("load work");
+          }
+          let max = threading + this.current > this.imgHref.length ? this.imgHref.length : threading + this.current;
+          for (this.current; this.current < max; this.current++) {
+            let that = this;
+            GM.xmlHttpRequest({
+              method: "GET",
+              url: this.imgHref[this.current],
+              responseType: "document",
+              onload: function (response) {
+                that.final++;
+                that.onSucceed(response, that.imgHref[that.current]);
+              },
+              onerror: function (err) {
+                that.final++;
+                that.onFailed(err, that.imgHref[that.current]);
+                if (debug) console.log(err);
+              },
+            });
           }
         },
-        claenGDT: function () {
+        cleanGDT: function () {
           while (gdt.firstChild && gdt.firstChild.className)
             gdt.removeChild(gdt.firstChild);
         },
@@ -647,7 +738,8 @@ Please make sure you are logged in successfully and then click this <button clas
             if (i < maxPic && i >= minPic - 1) {
               var img = document.createElement("img");
               var a = document.createElement("a");
-              img.setAttribute("src", "http://ehgt.org/g/roller.gif");
+              img.setAttribute("src", "https://ehgt.org/g/roller.gif");
+              img.setAttribute("loadding", "lazy");
               a.appendChild(img);
               this.imgList.push(a);
 
@@ -656,7 +748,8 @@ Please make sure you are logged in successfully and then click this <button clas
               var img = document.createElement("img");
               var a = document.createElement("a");
 
-              img.setAttribute("src", "http://ehgt.org/g/roller.gif");
+              img.setAttribute("src", "https://ehgt.org/g/roller.gif");
+              img.setAttribute("loadding", "lazy");
               a.appendChild(img);
 
               this.imgList.push(a);
@@ -918,9 +1011,12 @@ text-decoration: none;
       if (g.checkFunctional()) {
         var viewAll = await GM.getValue("view_all", true);
         g.generateImg(function () {
-          g.loadPageUrls(gdt);
-          g.claenGDT();
-          if (g.pageNum && viewAll) g.getNextPage("load");
+          if (g.pageNum && viewAll) {
+            g.getAllHref(0);
+          } else {
+            g.getHref(Number(document.querySelector("td.ptds").childNodes[0].text) - 1);
+          }
+          g.cleanGDT();
         });
 
         wrap(await GM.getValue("mode"));
@@ -980,7 +1076,7 @@ text-decoration: none;
     } else {
       $("#gdt")
         .find("img")
-        .css({"height": "auto", "width": $(window).width() * width});
+        .css({ "height": "auto", "width": $(window).width() * width });
     }
   }
 
