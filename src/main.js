@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.14
+// @version      0.2.15
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -248,7 +248,7 @@ Please make sure you are logged in successfully and then click this <button clas
         onerror: function (err) {
           console.error(err);
           error.style = "color:red";
-          error.innerText("Login got error: Please contact me at https://github.com/Sean2525/Let-s-panda/issues");
+          error.innerText("Login got error: Please contact me at https://github.com/MinoLiu/Let-s-panda/issues");
           loadding.hidden = true;
         },
       });
@@ -291,7 +291,7 @@ Please make sure you are logged in successfully and then click this <button clas
       comicId = location.pathname.match(/\d+/)[0],
       download = document.createElement("p");
 
-    const dlImg = ({ index, url }, success, error) => {
+    const dlImg = ({ index, url, _ }, success, error) => {
       var filename = url.replace(/.*\//g, "");
       var extension = filename.split(".").pop();
       filename = ("0000" + index).slice(-4) + "." + extension;
@@ -352,36 +352,73 @@ Please make sure you are logged in successfully and then click this <button clas
       var max = current + threading;
       if (max > total) max = total;
       for (current; current < max; current++) {
+        let _href = images[current];
         dlImg(
-          images[current],
+          _href,
           function (response, filename) {
             zip.file(filename, response.response);
-            if (debug) console.log(filename, "success");
+            if (debug) console.log(filename, "image success");
             next();
           },
           function (err, filename) {
             final--;
-            // retry for once
-            dlImg(
-              images[current],
-              function (response, filename) {
-                zip.file(filename, response.response);
-                if (debug) console.log(filename, "success");
-                next();
-              },
-              function (err, filename) {
-                failed++;
-                zip.file(
-                  filename + "_" + comicId + "_error.gif",
-                  "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
-                  {
-                    base64: true,
+            // retry backupUrl for once
+            GM.xmlHttpRequest({
+              method: "GET",
+              url: _href.backupUrl,
+              onload: function (response) {
+                let imgNo = parseInt(
+                  response.responseText.match("startpage=(\\d+)").pop()
+                );
+                let img = new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelector("#img");
+                if (debug) console.log(imgNo, "backupUrl success");
+                _href.url = img.src;
+                dlImg(
+                  _href,
+                  function (response, filename) {
+                    zip.file(filename, response.response);
+                    if (debug) console.log(filename, "backupUrl image success");
+                    next();
+                  },
+                  function (err, filename) {
+                    failed++;
+                    zip.file(
+                      filename + "_" + comicId + "_error.gif",
+                      "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
+                      {
+                        base64: true,
+                      }
+                    );
+                    if (debug) console.log(filename, "backupUrl image error");
+                    next();
                   }
                 );
-                if (debug) console.log(filename, "error");
-                next();
+              },
+              onerror: function (err, filename) {
+                dlImg(
+                  _href,
+                  function (response, filename) {
+                    zip.file(filename, response.response);
+                    if (debug) console.log(filename, "retry image success");
+                    next();
+                  },
+                  function (err, filename) {
+                    failed++;
+                    zip.file(
+                      filename + "_" + comicId + "_error.gif",
+                      "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
+                      {
+                        base64: true,
+                      }
+                    );
+                    if (debug) console.log(filename, "retry url error");
+                    next();
+                  }
+                );
               }
-            );
+            });
           }
         );
       }
@@ -411,6 +448,7 @@ Please make sure you are logged in successfully and then click this <button clas
       if (max > hrefs.length) max = hrefs.length;
       for (current; current < max; current++) {
         if (debug) console.log(hrefs[current]);
+        let href = hrefs[current];
         GM.xmlHttpRequest({
           method: "GET",
           url: hrefs[current],
@@ -421,10 +459,12 @@ Please make sure you are logged in successfully and then click this <button clas
             let img = new DOMParser()
               .parseFromString(response.responseText, "text/html")
               .querySelector("#img");
-            if (debug) console.log(imgNo, "success");
+            if (debug) console.log(imgNo, "url success");
+            let src = href + "?nl=" + /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
             images.push({
               index: imgNo,
               url: img.src,
+              backupUrl: src,
             });
             final++;
             getImageNext();
@@ -467,7 +507,7 @@ Please make sure you are logged in successfully and then click this <button clas
               ];
             if (!imgs.length) {
               alert(
-                "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
               );
             }
             imgs.forEach((v) => {
@@ -503,10 +543,12 @@ Please make sure you are logged in successfully and then click this <button clas
       getHref();
     });
   };
-  
+
 
   function view() {
     viewed = true;
+    if (threading < 1) threading = 1;
+    if (threading > 32) threading = 32;
     var gdt = document.querySelector("#gdt");
     var gdd = document.querySelector("#gdd");
     var gdo4 = document.querySelector("#gdo4");
@@ -529,9 +571,7 @@ Please make sure you are logged in successfully and then click this <button clas
         .textContent.split(" ")[0]
     );
 
-    var pagePic = maxPic - minPic + 1;
 
-    var status = "false";
     viewer(lpPage, imgNum, minPic, maxPic);
 
     async function viewer(lpPage, imgNum, minPic, maxPic) {
@@ -540,104 +580,203 @@ Please make sure you are logged in successfully and then click this <button clas
         this.imgNum = imgNum || 0;
         this.loc = /https?:\/\/e[x-]hentai\.org\/g\/\d+\/\w+/.exec(location.href)[0];
         this.padding = false;
+        this.current = 0;
+        this.final = 0;
       };
       var viewAll = await GM.getValue("view_all", true);
       Gallery.prototype = {
+        imgHref: [],
         imgList: [],
-
+        retry: 0,
+        getAllHref: function (nextID) {
+          if (nextID >= this.pageNum) {
+            this.loadNextImage();
+            return;
+          }
+          var that = this;
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: `${this.loc}?p=${nextID}`,
+            onload: function (response) {
+              if (debug)
+                console.log(`page ${that.loc}?p=${nextID} detect ${response.responseText}`);
+              let imgs = [
+                ...new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelectorAll(".gdtm a"),
+              ];
+              if (!imgs.length)
+                imgs = [
+                  ...new DOMParser()
+                    .parseFromString(response.responseText, "text/html")
+                    .querySelectorAll(".gdtl a"),
+                ];
+              if (!imgs.length) {
+                alert(
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
+                );
+              }
+              imgs.forEach((v) => {
+                that.imgHref.push(v.href);
+              });
+              that.getAllHref(nextID + 1);
+            },
+            onerror: function (err) {
+              if (debug) console.log(err);
+              that.retry++;
+              if (that.retry > 2) {
+                alert(`Page number ${nextID + 1} load failed for 3 times.`);
+                that.getAllHref(nextID + 1);
+              } else {
+                that.getAllHref(nextID);
+              }
+            },
+          });
+        },
+        getHref: function (pageID) {
+          var that = this;
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: `${this.loc}?p=${pageID}`,
+            onload: function (response) {
+              if (debug)
+                console.log(`page ${that.loc}?p=${pageID} detect ${response.responseText}`);
+              let imgs = [
+                ...new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelectorAll(".gdtm a"),
+              ];
+              if (!imgs.length)
+                imgs = [
+                  ...new DOMParser()
+                    .parseFromString(response.responseText, "text/html")
+                    .querySelectorAll(".gdtl a"),
+                ];
+              if (!imgs.length) {
+                alert(
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
+                );
+              }
+              imgs.forEach((v) => {
+                that.imgHref.push(v.href);
+              });
+              that.loadNextImage();
+            },
+            onerror: function (err) {
+              if (debug) console.log(err);
+              that.retry++;
+              if (that.retry > 2) {
+                alert(`Page number ${nextID + 1} load failed for 3 times.`);
+                that.loadNextImage();
+              } else {
+                that.getHref(nextID);
+              }
+            },
+          });
+        },
         checkFunctional: function () {
           return (this.imgNum > 41 && this.pageNum < 2) || this.imgNum !== 0;
         },
-        loadPageUrls: function (element) {
-          [].forEach.call(element.querySelectorAll("a[href]"), function (item) {
-            console.log("load work");
-            var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = async function () {
-              if (4 == ajax.readyState && 200 == ajax.status) {
-                var imgNo = parseInt(
-                  ajax.responseText.match("startpage=(\\d+)").pop()
-                );
-                var imgDom = new DOMParser()
-                  .parseFromString(ajax.responseText, "text/html")
-                  .getElementById("img");
-                var src =
-                  ajax.responseURL +
-                  "?nl=" +
-                  /nl\(\'(.*)\'\)/.exec(imgDom.attributes.onerror.value)[1];
-                Gallery.prototype.imgList[imgNo - 1].setAttribute(
-                  "data-href",
-                  src
-                );
-                Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
-                  imgDom.src;
-                $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
-                  "error",
-                  function () {
-                    var ajax = new XMLHttpRequest();
-                    ajax.onreadystatechange = async function () {
-                      if (4 == ajax.readyState && 200 == ajax.status) {
-                        var imgNo = parseInt(
-                          ajax.responseText.match("startpage=(\\d+)").pop()
-                        );
-                        var imgDom = new DOMParser()
-                          .parseFromString(ajax.responseText, "text/html")
-                          .getElementById("img");
-                        Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
-                          imgDom.src;
+        loadNextImage: function () {
+          if (this.final < this.current) {
+            return;
+          }
+          this.loadPageUrls();
+        },
+        onSucceed: async function (response, href) {
+          let imgNo = parseInt(
+            response.responseText.match("startpage=(\\d+)").pop()
+          );
+          let img = new DOMParser()
+            .parseFromString(response.responseText, "text/html")
+            .querySelector("#img");
+          if (debug) console.log(imgNo, "success");
+          let src = href + "?nl=" + /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
+          Gallery.prototype.imgList[imgNo - 1].setAttribute(
+            "data-href",
+            src
+          );
 
-                        if ((await GM.getValue("width")) == undefined) {
-                          GM.setValue("width", "0.7");
-                          console.log("set width:0.7");
-                        }
+          let timeoutId;
+          let timeoutDuration = 10000; // 10s
 
-                        if ((await GM.getValue("mode")) == undefined) {
-                          GM.setValue("mode", "single");
-                          console.log("set mode:single");
-                        }
+          timeoutId = setTimeout(function () {
+            // timeout trigger error
+            Gallery.prototype.imgList[imgNo - 1].childNodes[0].dispatchEvent(new Event('error'));
+          }, timeoutDuration);
 
-                        await resizeImg(await GM.getValue("width"))
-                      }
-                    };
-                    ajax.open("GET", src);
-                    ajax.send(null);
-                  }
-                );
-                if ((await GM.getValue("width")) == undefined) {
-                  GM.setValue("width", "0.7");
-                  console.log("set width:0.7");
+          $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on("load", function () {
+            // success clear timeoutId
+            clearTimeout(timeoutId);
+          });
+
+          $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
+            "error",
+            function () {
+              var ajax = new XMLHttpRequest();
+              ajax.onreadystatechange = async function () {
+                if (debug) {
+                  console.log(`Failed load ${Number(imgNo)}, getting backup image from ${src}.`);
                 }
-
-                if ((await GM.getValue("mode")) == undefined) {
-                  GM.setValue("mode", "single");
-                  console.log("set mode:single");
+                if (4 == ajax.readyState && 200 == ajax.status) {
+                  var _imgNo = parseInt(
+                    ajax.responseText.match("startpage=(\\d+)").pop()
+                  );
+                  var imgDom = new DOMParser()
+                    .parseFromString(ajax.responseText, "text/html")
+                    .getElementById("img");
+                  Gallery.prototype.imgList[_imgNo - 1].childNodes[0].src =
+                    imgDom.src;
                 }
+              };
+              ajax.open("GET", src);
+              ajax.send(null);
+            }
+          );
 
-                await resizeImg(await GM.getValue("width"))
-              }
-            };
-            ajax.open("GET", item.href);
-            ajax.send(null);
+          Gallery.prototype.imgList[imgNo - 1].childNodes[0].src = img.src;
+
+          this.loadNextImage();
+        },
+        onFailed: function (err, href) {
+          GM.xmlHttpRequest({
+            method: "GET",
+            url: href,
+            responseType: "document",
+            onload: function (response) {
+              that.onSucceed(response, href);
+            },
+            onerror: function (err) {
+              if (debug) console.log(err);
+              this.loadNextImage();
+            },
           });
         },
-        getNextPage: function () {
-          var LoadPageUrls = this.loadPageUrls;
-          var download = this.download_file;
-          for (var i = 0; i < this.pageNum; ++i) {
-            var ajax = new XMLHttpRequest();
-            ajax.onreadystatechange = function () {
-              if (4 == this.readyState && 200 == this.status) {
-                var dom = new DOMParser().parseFromString(
-                  this.responseText,
-                  "text/html"
-                );
-                LoadPageUrls(dom.getElementById("gdt"));
-              }
-            };
-            ajax.open("GET", this.loc + "?p=" + i);
-            ajax.send(null);
+        loadPageUrls: function () {
+          if (debug) {
+            console.log("load work");
+          }
+          let max = threading + this.current > this.imgHref.length ? this.imgHref.length : threading + this.current;
+          for (this.current; this.current < max; this.current++) {
+            let that = this;
+            let href = this.imgHref[this.current];
+            GM.xmlHttpRequest({
+              method: "GET",
+              url: href,
+              responseType: "document",
+              onload: function (response) {
+                that.final++;
+                that.onSucceed(response, href);
+              },
+              onerror: function (err) {
+                if (debug) console.log(err);
+                that.final++;
+                that.onFailed(err, href);
+              },
+            });
           }
         },
-        claenGDT: function () {
+        cleanGDT: function () {
           while (gdt.firstChild && gdt.firstChild.className)
             gdt.removeChild(gdt.firstChild);
         },
@@ -647,7 +786,8 @@ Please make sure you are logged in successfully and then click this <button clas
             if (i < maxPic && i >= minPic - 1) {
               var img = document.createElement("img");
               var a = document.createElement("a");
-              img.setAttribute("src", "http://ehgt.org/g/roller.gif");
+              img.setAttribute("src", "https://ehgt.org/g/roller.gif");
+              img.setAttribute("loadding", "lazy");
               a.appendChild(img);
               this.imgList.push(a);
 
@@ -656,7 +796,8 @@ Please make sure you are logged in successfully and then click this <button clas
               var img = document.createElement("img");
               var a = document.createElement("a");
 
-              img.setAttribute("src", "http://ehgt.org/g/roller.gif");
+              img.setAttribute("src", "https://ehgt.org/g/roller.gif");
+              img.setAttribute("loadding", "lazy");
               a.appendChild(img);
 
               this.imgList.push(a);
@@ -698,12 +839,12 @@ height:32px;
 width: 32px;
 //border: 1px solid #989898;
 //background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/2_32.png);
 }
 
 .double:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/2_32.png);
 }
 
 .single{
@@ -715,7 +856,7 @@ height:32px;
 width: 32px;
 //border: 1px solid #989898;
 // background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/1_32.png);
 }
 
 .size_pic{
@@ -731,7 +872,7 @@ width: 16px;
 
 .single:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/1_32.png);
 
 }
 
@@ -797,32 +938,12 @@ text-decoration: none;
           size_pic_add.innerHTML += "+";
           gdo4.appendChild(size_pic_add);
 
-          /*
-                              const wrap =(width)=>{
-                                  let img = $('#gdt').find('img');
-
-                                  for(let i = 0;i<img.length;i++){
-                                      let wrap = document.createElement('wrap');
-                                      wrap.innerHTML='<br>';
-                                      if(width>0.5){
-                                          gdt.insertBefore(wrap,img[i]);
-                                      }
-                                      else if(width<=0.5){
-                                          if(i%2!==1){
-                                              gdt.insertBefore(wrap,img[i]);
-                                          }
-
-                                      }
-                                  }
-                              }
-          */
-
           document
             .getElementById("gdo4")
             .children[0] //when single button click change value of width
             .addEventListener("click", async function (event) {
-              GM.setValue("width", "0.7");
-              GM.setValue("mode", "single");
+              await GM.setValue("width", "0.7");
+              await GM.setValue("mode", "single");
               await pic_width(await GM.getValue("width"));
               $("wrap").remove();
 
@@ -833,8 +954,8 @@ text-decoration: none;
             .getElementById("gdo4")
             .children[1] //when double button click change value of width
             .addEventListener("click", async function (event) {
-              GM.setValue("width", "0.49");
-              GM.setValue("mode", "double");
+              await GM.setValue("width", "0.49");
+              await GM.setValue("mode", "double");
               let view_reverse = await GM.getValue("view_reverse", true);
               GM.setValue("view_reverse", !view_reverse);
               await pic_width(await GM.getValue("width"));
@@ -870,14 +991,14 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[3].addEventListener("click", async function (event) {
-              GM.setValue("full_image", true);
+              await GM.setValue("full_image", true);
               await pic_width(0);
             });
 
           document
             .getElementById("gdo4")
             .children[4].addEventListener("click", async function (event) {
-              GM.setValue("full_image", false);
+              await GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
@@ -891,7 +1012,7 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[5].addEventListener("click", async function (event) {
-              GM.setValue("full_image", false);
+              await GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
@@ -906,7 +1027,7 @@ text-decoration: none;
             width //change width of pics
           ) {
             for (var i = maxPic - minPic + 1; i > 0; i--) {
-              await resizeImg(width)
+              await resizeImg(width);
             }
           }
 
@@ -918,23 +1039,19 @@ text-decoration: none;
       if (g.checkFunctional()) {
         var viewAll = await GM.getValue("view_all", true);
         g.generateImg(function () {
-          g.loadPageUrls(gdt);
-          g.claenGDT();
-          if (g.pageNum && viewAll) g.getNextPage("load");
+          if (g.pageNum && viewAll) {
+            g.getAllHref(0);
+          } else {
+            g.getHref(Number(document.querySelector("td.ptds").childNodes[0].text) - 1);
+          }
+          g.cleanGDT();
         });
 
-        wrap(await GM.getValue("mode"));
+        await wrap(await GM.getValue("mode"));
       } else {
         alert(
-          "There are some issue in the script\nplease open an issue on Github"
+          "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
         );
-        //window.open("https://github.com/strong-Ting/Gentle-Viewer/issues");
-      }
-
-      function download_files(lpPage, imgNum, minPic, maxPic) {
-        console.log(lpPage, imgNum, minPic, maxPic);
-        var download_obj = new Gallery(lpPage, imgNum, minPic, maxPic);
-        download_obj.download();
       }
     }
   }
@@ -952,8 +1069,24 @@ text-decoration: none;
       }
       switchWrap = false;
     }
+
+    if ((await GM.getValue("width")) == undefined) {
+      await GM.setValue("width", "0.49");
+      console.log("set width:0.49");
+    }
+
+    if ((await GM.getValue("mode")) == undefined) {
+      await GM.setValue("mode", "double");
+      console.log("set mode:double");
+    }
+    if ((await GM.getValue("view_reverse")) == undefined) {
+      await GM.setValue("view_reverse", true);
+      console.log("set view_reverse:true");
+    }
+
+
     img = $("#gdt").find("a");
-    let view_reverse = await GM.getValue("view_reverse", true);
+    let view_reverse = (await GM.getValue("view_reverse", true));
     for (let i = 0; i < img.length; i++) {
       let wrap = document.createElement("wrap");
       wrap.innerHTML = "<br>";
@@ -969,10 +1102,12 @@ text-decoration: none;
         }
       }
     }
+
+    await resizeImg(await GM.getValue("width"));
   };
 
   const resizeImg = async (width) => {
-    const full_image = await GM.getValue("full_image");
+    const full_image = (await GM.getValue("full_image"));
     if (full_image == true) {
       $("#gdt")
         .find("img")
@@ -980,7 +1115,7 @@ text-decoration: none;
     } else {
       $("#gdt")
         .find("img")
-        .css({"height": "auto", "width": $(window).width() * width});
+        .css({ "height": "auto", "width": $(window).width() * width });
     }
   }
 
@@ -1038,6 +1173,15 @@ text-decoration: none;
 
     adjustGmid();
     if (view_mode) {
+      // Stop image loadding for thumbnails.
+      var imageToStop = document.querySelector("#gdt").querySelectorAll("img");
+      imageToStop.forEach((img, key) => {
+        // Only load the first thumbnail.
+        if (key == 0) {
+          return;
+        }
+        img.src = "";
+      })
       view();
     }
   };
