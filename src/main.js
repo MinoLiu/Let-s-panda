@@ -248,7 +248,7 @@ Please make sure you are logged in successfully and then click this <button clas
         onerror: function (err) {
           console.error(err);
           error.style = "color:red";
-          error.innerText("Login got error: Please contact me at https://github.com/Sean2525/Let-s-panda/issues");
+          error.innerText("Login got error: Please contact me at https://github.com/MinoLiu/Let-s-panda/issues");
           loadding.hidden = true;
         },
       });
@@ -391,7 +391,7 @@ Please make sure you are logged in successfully and then click this <button clas
      * Update image download status.
      */
     const getImageNext = () => {
-      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Getting images ${final}/${hrefs.length}</a>`;
+      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Getting urls ${final}/${hrefs.length}</a>`;
       if (debug) console.log(final, current);
       if (final < current) return;
       final < hrefs.length
@@ -467,7 +467,7 @@ Please make sure you are logged in successfully and then click this <button clas
               ];
             if (!imgs.length) {
               alert(
-                "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
               );
             }
             imgs.forEach((v) => {
@@ -531,9 +531,7 @@ Please make sure you are logged in successfully and then click this <button clas
         .textContent.split(" ")[0]
     );
 
-    var pagePic = maxPic - minPic + 1;
 
-    var status = "false";
     viewer(lpPage, imgNum, minPic, maxPic);
 
     async function viewer(lpPage, imgNum, minPic, maxPic) {
@@ -575,7 +573,7 @@ Please make sure you are logged in successfully and then click this <button clas
                 ];
               if (!imgs.length) {
                 alert(
-                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
                 );
               }
               imgs.forEach((v) => {
@@ -616,7 +614,7 @@ Please make sure you are logged in successfully and then click this <button clas
                 ];
               if (!imgs.length) {
                 alert(
-                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/Sean2525/Let-s-panda/issues"
+                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
                 );
               }
               imgs.forEach((v) => {
@@ -625,8 +623,14 @@ Please make sure you are logged in successfully and then click this <button clas
               that.loadNextImage();
             },
             onerror: function (err) {
-              that.loadNextImage();
               if (debug) console.log(err);
+              that.retry++;
+              if (that.retry > 2) {
+                alert(`Page number ${nextID + 1} load failed for 3 times.`);
+                that.loadNextImage();
+              } else {
+                that.getHref(nextID);
+              }
             },
           });
         },
@@ -647,47 +651,52 @@ Please make sure you are logged in successfully and then click this <button clas
             .parseFromString(response.responseText, "text/html")
             .querySelector("#img");
           if (debug) console.log(imgNo, "success");
-          var src =
-            href +
-            "?nl=" +
-            /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
+          let src = href + "?nl=" + /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
           Gallery.prototype.imgList[imgNo - 1].setAttribute(
             "data-href",
             src
           );
-          Gallery.prototype.imgList[imgNo - 1].childNodes[0].src = img.src;
+
+          let timeoutId;
+          let timeoutDuration = 10000; // 10s
+
+          timeoutId = setTimeout(function () {
+            // timeout trigger error
+            Gallery.prototype.imgList[imgNo - 1].childNodes[0].dispatchEvent(new Event('error'));
+          }, timeoutDuration);
+
+          $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on("load", function () {
+            // success clear timeoutId
+            clearTimeout(timeoutId);
+          });
+
           $(Gallery.prototype.imgList[imgNo - 1].childNodes[0]).on(
             "error",
             function () {
               var ajax = new XMLHttpRequest();
               ajax.onreadystatechange = async function () {
+                if (debug) {
+                  console.log(`Failed load ${Number(imgNo)}, getting backup image from ${src}.`);
+                }
                 if (4 == ajax.readyState && 200 == ajax.status) {
-                  var imgNo = parseInt(
+                  var _imgNo = parseInt(
                     ajax.responseText.match("startpage=(\\d+)").pop()
                   );
                   var imgDom = new DOMParser()
                     .parseFromString(ajax.responseText, "text/html")
                     .getElementById("img");
-                  Gallery.prototype.imgList[imgNo - 1].childNodes[0].src =
+                  Gallery.prototype.imgList[_imgNo - 1].childNodes[0].src =
                     imgDom.src;
 
-                  if ((await GM.getValue("width")) == undefined) {
-                    GM.setValue("width", "0.7");
-                    console.log("set width:0.7");
-                  }
 
-                  if ((await GM.getValue("mode")) == undefined) {
-                    GM.setValue("mode", "single");
-                    console.log("set mode:single");
-                  }
-
-                  await resizeImg(await GM.getValue("width"))
                 }
               };
               ajax.open("GET", src);
               ajax.send(null);
             }
           );
+
+          Gallery.prototype.imgList[imgNo - 1].childNodes[0].src = img.src;
 
           this.loadNextImage();
         },
@@ -712,18 +721,19 @@ Please make sure you are logged in successfully and then click this <button clas
           let max = threading + this.current > this.imgHref.length ? this.imgHref.length : threading + this.current;
           for (this.current; this.current < max; this.current++) {
             let that = this;
+            let href = this.imgHref[this.current];
             GM.xmlHttpRequest({
               method: "GET",
-              url: this.imgHref[this.current],
+              url: href,
               responseType: "document",
               onload: function (response) {
                 that.final++;
-                that.onSucceed(response, that.imgHref[that.current]);
+                that.onSucceed(response, href);
               },
               onerror: function (err) {
-                that.final++;
-                that.onFailed(err, that.imgHref[that.current]);
                 if (debug) console.log(err);
+                that.final++;
+                that.onFailed(err, href);
               },
             });
           }
@@ -791,12 +801,12 @@ height:32px;
 width: 32px;
 //border: 1px solid #989898;
 //background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/2_32.png);
 }
 
 .double:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/2_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/2_32.png);
 }
 
 .single{
@@ -808,7 +818,7 @@ height:32px;
 width: 32px;
 //border: 1px solid #989898;
 // background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/1_32.png);
 }
 
 .size_pic{
@@ -824,7 +834,7 @@ width: 16px;
 
 .single:hover{
 background: #4f535b;
-background-image: url(https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/icons/1_32.png);
+background-image: url(https://raw.githubusercontent.com/MinoLiu/Let-s-panda/master/icons/1_32.png);
 
 }
 
@@ -889,26 +899,6 @@ text-decoration: none;
           size_pic_add.className = "size_btn";
           size_pic_add.innerHTML += "+";
           gdo4.appendChild(size_pic_add);
-
-          /*
-                              const wrap =(width)=>{
-                                  let img = $('#gdt').find('img');
-
-                                  for(let i = 0;i<img.length;i++){
-                                      let wrap = document.createElement('wrap');
-                                      wrap.innerHTML='<br>';
-                                      if(width>0.5){
-                                          gdt.insertBefore(wrap,img[i]);
-                                      }
-                                      else if(width<=0.5){
-                                          if(i%2!==1){
-                                              gdt.insertBefore(wrap,img[i]);
-                                          }
-
-                                      }
-                                  }
-                              }
-          */
 
           document
             .getElementById("gdo4")
@@ -1022,15 +1012,8 @@ text-decoration: none;
         wrap(await GM.getValue("mode"));
       } else {
         alert(
-          "There are some issue in the script\nplease open an issue on Github"
+          "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
         );
-        //window.open("https://github.com/strong-Ting/Gentle-Viewer/issues");
-      }
-
-      function download_files(lpPage, imgNum, minPic, maxPic) {
-        console.log(lpPage, imgNum, minPic, maxPic);
-        var download_obj = new Gallery(lpPage, imgNum, minPic, maxPic);
-        download_obj.download();
       }
     }
   }
@@ -1065,6 +1048,18 @@ text-decoration: none;
         }
       }
     }
+
+    if ((await GM.getValue("width")) == undefined) {
+      GM.setValue("width", "0.7");
+      console.log("set width:0.7");
+    }
+
+    if ((await GM.getValue("mode")) == undefined) {
+      GM.setValue("mode", "single");
+      console.log("set mode:single");
+    }
+
+    await resizeImg(await GM.getValue("width"))
   };
 
   const resizeImg = async (width) => {
@@ -1134,6 +1129,15 @@ text-decoration: none;
 
     adjustGmid();
     if (view_mode) {
+      // Stop image loadding for thumbnails.
+      var imageToStop = document.querySelector("#gdt").querySelectorAll("img");
+      imageToStop.forEach((img, key) => {
+        // Only load the first thumbnail.
+        if (key == 0) {
+          return;
+        }
+        img.src = "";
+      })
       view();
     }
   };
