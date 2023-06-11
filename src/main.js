@@ -291,7 +291,7 @@ Please make sure you are logged in successfully and then click this <button clas
       comicId = location.pathname.match(/\d+/)[0],
       download = document.createElement("p");
 
-    const dlImg = ({ index, url }, success, error) => {
+    const dlImg = ({ index, url, _ }, success, error) => {
       var filename = url.replace(/.*\//g, "");
       var extension = filename.split(".").pop();
       filename = ("0000" + index).slice(-4) + "." + extension;
@@ -352,36 +352,73 @@ Please make sure you are logged in successfully and then click this <button clas
       var max = current + threading;
       if (max > total) max = total;
       for (current; current < max; current++) {
+        let _href = images[current];
         dlImg(
-          images[current],
+          _href,
           function (response, filename) {
             zip.file(filename, response.response);
-            if (debug) console.log(filename, "success");
+            if (debug) console.log(filename, "image success");
             next();
           },
           function (err, filename) {
             final--;
-            // retry for once
-            dlImg(
-              images[current],
-              function (response, filename) {
-                zip.file(filename, response.response);
-                if (debug) console.log(filename, "success");
-                next();
-              },
-              function (err, filename) {
-                failed++;
-                zip.file(
-                  filename + "_" + comicId + "_error.gif",
-                  "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
-                  {
-                    base64: true,
+            // retry backupUrl for once
+            GM.xmlHttpRequest({
+              method: "GET",
+              url: _href.backupUrl,
+              onload: function (response) {
+                let imgNo = parseInt(
+                  response.responseText.match("startpage=(\\d+)").pop()
+                );
+                let img = new DOMParser()
+                  .parseFromString(response.responseText, "text/html")
+                  .querySelector("#img");
+                if (debug) console.log(imgNo, "backupUrl success");
+                _href.url = img.src;
+                dlImg(
+                  _href,
+                  function (response, filename) {
+                    zip.file(filename, response.response);
+                    if (debug) console.log(filename, "backupUrl image success");
+                    next();
+                  },
+                  function (err, filename) {
+                    failed++;
+                    zip.file(
+                      filename + "_" + comicId + "_error.gif",
+                      "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
+                      {
+                        base64: true,
+                      }
+                    );
+                    if (debug) console.log(filename, "backupUrl image error");
+                    next();
                   }
                 );
-                if (debug) console.log(filename, "error");
-                next();
+              },
+              onerror: function (err, filename) {
+                dlImg(
+                  _href,
+                  function (response, filename) {
+                    zip.file(filename, response.response);
+                    if (debug) console.log(filename, "retry image success");
+                    next();
+                  },
+                  function (err, filename) {
+                    failed++;
+                    zip.file(
+                      filename + "_" + comicId + "_error.gif",
+                      "R0lGODdhBQAFAIACAAAAAP/eACwAAAAABQAFAAACCIwPkWerClIBADs=",
+                      {
+                        base64: true,
+                      }
+                    );
+                    if (debug) console.log(filename, "retry url error");
+                    next();
+                  }
+                );
               }
-            );
+            });
           }
         );
       }
@@ -391,7 +428,7 @@ Please make sure you are logged in successfully and then click this <button clas
      * Update image download status.
      */
     const getImageNext = () => {
-      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Getting urls ${final}/${hrefs.length}</a>`;
+      download.innerHTML = `<span style="margin-left:10px;">▶</span> <a href="#">Getting images ${final}/${hrefs.length}</a>`;
       if (debug) console.log(final, current);
       if (final < current) return;
       final < hrefs.length
@@ -411,6 +448,7 @@ Please make sure you are logged in successfully and then click this <button clas
       if (max > hrefs.length) max = hrefs.length;
       for (current; current < max; current++) {
         if (debug) console.log(hrefs[current]);
+        let href = hrefs[current];
         GM.xmlHttpRequest({
           method: "GET",
           url: hrefs[current],
@@ -421,10 +459,12 @@ Please make sure you are logged in successfully and then click this <button clas
             let img = new DOMParser()
               .parseFromString(response.responseText, "text/html")
               .querySelector("#img");
-            if (debug) console.log(imgNo, "success");
+            if (debug) console.log(imgNo, "url success");
+            let src = href + "?nl=" + /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
             images.push({
               index: imgNo,
               url: img.src,
+              backupUrl: src,
             });
             final++;
             getImageNext();
@@ -687,8 +727,6 @@ Please make sure you are logged in successfully and then click this <button clas
                     .getElementById("img");
                   Gallery.prototype.imgList[_imgNo - 1].childNodes[0].src =
                     imgDom.src;
-
-
                 }
               };
               ajax.open("GET", src);
@@ -904,8 +942,8 @@ text-decoration: none;
             .getElementById("gdo4")
             .children[0] //when single button click change value of width
             .addEventListener("click", async function (event) {
-              GM.setValue("width", "0.7");
-              GM.setValue("mode", "single");
+              await GM.setValue("width", "0.7");
+              await GM.setValue("mode", "single");
               await pic_width(await GM.getValue("width"));
               $("wrap").remove();
 
@@ -916,8 +954,8 @@ text-decoration: none;
             .getElementById("gdo4")
             .children[1] //when double button click change value of width
             .addEventListener("click", async function (event) {
-              GM.setValue("width", "0.49");
-              GM.setValue("mode", "double");
+              await GM.setValue("width", "0.49");
+              await GM.setValue("mode", "double");
               let view_reverse = await GM.getValue("view_reverse", true);
               GM.setValue("view_reverse", !view_reverse);
               await pic_width(await GM.getValue("width"));
@@ -953,14 +991,14 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[3].addEventListener("click", async function (event) {
-              GM.setValue("full_image", true);
+              await GM.setValue("full_image", true);
               await pic_width(0);
             });
 
           document
             .getElementById("gdo4")
             .children[4].addEventListener("click", async function (event) {
-              GM.setValue("full_image", false);
+              await GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.2 && size_width < 1.5) {
                 size_width = size_width - 0.1;
@@ -974,7 +1012,7 @@ text-decoration: none;
           document
             .getElementById("gdo4")
             .children[5].addEventListener("click", async function (event) {
-              GM.setValue("full_image", false);
+              await GM.setValue("full_image", false);
               var size_width = parseFloat(await GM.getValue("width"));
               if (size_width > 0.1 && size_width < 1.4) {
                 size_width = size_width + 0.1;
@@ -989,7 +1027,7 @@ text-decoration: none;
             width //change width of pics
           ) {
             for (var i = maxPic - minPic + 1; i > 0; i--) {
-              await resizeImg(width)
+              await resizeImg(width);
             }
           }
 
@@ -1009,7 +1047,7 @@ text-decoration: none;
           g.cleanGDT();
         });
 
-        wrap(await GM.getValue("mode"));
+        await wrap(await GM.getValue("mode"));
       } else {
         alert(
           "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
@@ -1031,8 +1069,24 @@ text-decoration: none;
       }
       switchWrap = false;
     }
+
+    if ((await GM.getValue("width")) == undefined) {
+      await GM.setValue("width", "0.49");
+      console.log("set width:0.49");
+    }
+
+    if ((await GM.getValue("mode")) == undefined) {
+      await GM.setValue("mode", "double");
+      console.log("set mode:double");
+    }
+    if ((await GM.getValue("view_reverse")) == undefined) {
+      await GM.setValue("view_reverse", true);
+      console.log("set view_reverse:true");
+    }
+
+
     img = $("#gdt").find("a");
-    let view_reverse = await GM.getValue("view_reverse", true);
+    let view_reverse = (await GM.getValue("view_reverse", true));
     for (let i = 0; i < img.length; i++) {
       let wrap = document.createElement("wrap");
       wrap.innerHTML = "<br>";
@@ -1049,21 +1103,11 @@ text-decoration: none;
       }
     }
 
-    if ((await GM.getValue("width")) == undefined) {
-      GM.setValue("width", "0.7");
-      console.log("set width:0.7");
-    }
-
-    if ((await GM.getValue("mode")) == undefined) {
-      GM.setValue("mode", "single");
-      console.log("set mode:single");
-    }
-
-    await resizeImg(await GM.getValue("width"))
+    await resizeImg(await GM.getValue("width"));
   };
 
   const resizeImg = async (width) => {
-    const full_image = await GM.getValue("full_image");
+    const full_image = (await GM.getValue("full_image"));
     if (full_image == true) {
       $("#gdt")
         .find("img")
