@@ -1047,6 +1047,39 @@ text-decoration: none;
           g.cleanGDT();
         });
 
+        document.addEventListener("keydown", (e) => {
+          let nextImg = null;
+
+          if (e.code === "ArrowUp") {
+            for (let i = g.imgList.length - 1; i >= 0; i--) {
+              const img = g.imgList[i].childNodes[0];
+              const rect = img.getBoundingClientRect();
+              if (rect.top < -1) {
+                nextImg = img;
+                break;
+              }
+            }
+          }
+
+          if (e.code === "ArrowDown") {
+            for (let i = 0; i < g.imgList.length; i++) {
+              const img = g.imgList[i].childNodes[0];
+              const rect = img.getBoundingClientRect();
+              if (rect.top > 1) {
+                nextImg = img;
+                break;
+              }
+            }
+          }
+
+          if (nextImg !== null) {
+            e.preventDefault();
+            window.scrollTo({
+              top: nextImg.offsetTop,
+            });
+          }
+        })
+
         await wrap(await GM.getValue("mode"));
       } else {
         alert(
