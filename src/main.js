@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.16
+// @version      0.2.17
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -551,7 +551,10 @@ Please make sure you are logged in successfully and then click this <button clas
     if (threading > 32) threading = 32;
     var gdt = document.querySelector("#gdt");
     var gdd = document.querySelector("#gdd");
-    var gdo4 = document.querySelector("#gdo4");
+    var gdo4 = document.createElement("div");
+    gdo4.setAttribute("id", "gdo4");
+    $("body").append(gdo4);
+
     let childNodes = document.querySelector("table[class=ptt] tbody tr")
       .childNodes;
     let lpPage = parseInt(
