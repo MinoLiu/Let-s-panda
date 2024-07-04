@@ -1053,6 +1053,11 @@ text-decoration: none;
         document.addEventListener("keydown", (e) => {
           let nextImg = null;
 
+          // ignore key combinations
+          if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
+            return;
+          }
+
           if (e.code === "ArrowUp") {
             for (let i = g.imgList.length - 1; i >= 0; i--) {
               const img = g.imgList[i].childNodes[0];
