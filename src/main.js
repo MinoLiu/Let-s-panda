@@ -1053,7 +1053,7 @@ text-decoration: none;
         document.addEventListener("keydown", (e) => {
           let nextImg = null;
 
-          if (e.code === "ArrowUp") {
+          if (e.code === "ArrowUp" || e.code === "KeyW") {
             for (let i = g.imgList.length - 1; i >= 0; i--) {
               const img = g.imgList[i].childNodes[0];
               const rect = img.getBoundingClientRect();
@@ -1064,7 +1064,7 @@ text-decoration: none;
             }
           }
 
-          if (e.code === "ArrowDown") {
+          if (e.code === "ArrowDown" || e.code === "Space"  || e.code === "KeyS") {
             for (let i = 0; i < g.imgList.length; i++) {
               const img = g.imgList[i].childNodes[0];
               const rect = img.getBoundingClientRect();
