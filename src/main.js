@@ -1089,6 +1089,30 @@ text-decoration: none;
           }
         })
 
+        document.addEventListener("keydown", async (e) => {
+          // ignore key combinations
+          if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
+            return;
+          }
+
+          var view_all = await GM.getValue("view_all", true);
+
+          if (view_all === true) {
+            return;
+          }
+
+
+          if (e.code === "ArrowLeft" || e.code === "KeyA") {
+            e.preventDefault();
+            childNodes[0].click();
+          }
+
+          if (e.code === "ArrowRight" || e.code === "KeyD") {
+            e.preventDefault();
+            childNodes[childNodes.length - 1].click();
+          }
+        })
+
         await wrap(await GM.getValue("mode"));
       } else {
         alert(
