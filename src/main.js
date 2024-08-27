@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.18
+// @version      0.2.19
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -1094,6 +1094,11 @@ text-decoration: none;
           if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
             return;
           }
+          // Check if the current focus is on an input or textarea element
+          if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+            return;
+          }
+
 
           var view_all = await GM.getValue("view_all", true);
 
