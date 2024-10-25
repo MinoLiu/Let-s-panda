@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.20
+// @version      0.2.21
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -54,6 +54,50 @@ jQuery(function ($) {
 
 
   var viewed = false;
+
+  const getCurrPageImgUrl = (response) => {
+    let imgs = [
+      ...new DOMParser()
+        .parseFromString(response.responseText, "text/html")
+        .querySelectorAll(".gt200 a"),
+    ];
+
+    if (!imgs.length){
+      imgs = [
+        ...new DOMParser()
+          .parseFromString(response.responseText, "text/html")
+          .querySelectorAll(".gt100 a"),
+      ];
+    }
+    if (!imgs.length){
+      imgs = [
+        ...new DOMParser()
+          .parseFromString(response.responseText, "text/html")
+          .querySelectorAll(".gdtm a"),
+      ];
+    }
+    if (!imgs.length){
+      imgs = [
+        ...new DOMParser()
+          .parseFromString(response.responseText, "text/html")
+          .querySelectorAll(".gdtl a"),
+      ];
+    }
+    if (!imgs.length){
+      imgs = [
+        ...new DOMParser()
+          .parseFromString(response.responseText, "text/html")
+          .querySelectorAll("#gdt a"),
+      ];
+    }
+    if (!imgs.length) {
+      alert(
+        "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
+      );
+    }
+    return imgs;
+  }
+
   const loginPage = () => {
     let div = document.createElement("div");
     div.className = "main";
@@ -494,22 +538,7 @@ Please make sure you are logged in successfully and then click this <button clas
           onload: function (response) {
             if (debug)
               console.log(`page ${loc}?p=${i} detect ${response.responseText}`);
-            let imgs = [
-              ...new DOMParser()
-                .parseFromString(response.responseText, "text/html")
-                .querySelectorAll("#gdt a"),
-            ];
-            if (!imgs.length)
-              imgs = [
-                ...new DOMParser()
-                  .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll(".gdtl a"),
-              ];
-            if (!imgs.length) {
-              alert(
-                "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
-              );
-            }
+            let imgs = getCurrPageImgUrl(response);
             imgs.forEach((v) => {
               hrefs.push(v.href);
             });
@@ -603,22 +632,7 @@ Please make sure you are logged in successfully and then click this <button clas
             onload: function (response) {
               if (debug)
                 console.log(`page ${that.loc}?p=${nextID} detect ${response.responseText}`);
-              let imgs = [
-                ...new DOMParser()
-                  .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll("#gdt a"),
-              ];
-              if (!imgs.length)
-                imgs = [
-                  ...new DOMParser()
-                    .parseFromString(response.responseText, "text/html")
-                    .querySelectorAll(".gdtl a"),
-                ];
-              if (!imgs.length) {
-                alert(
-                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
-                );
-              }
+              let imgs = getCurrPageImgUrl(response);
               imgs.forEach((v) => {
                 that.imgHref.push(v.href);
               });
@@ -644,22 +658,7 @@ Please make sure you are logged in successfully and then click this <button clas
             onload: function (response) {
               if (debug)
                 console.log(`page ${that.loc}?p=${pageID} detect ${response.responseText}`);
-              let imgs = [
-                ...new DOMParser()
-                  .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll("#gdt a"),
-              ];
-              if (!imgs.length)
-                imgs = [
-                  ...new DOMParser()
-                    .parseFromString(response.responseText, "text/html")
-                    .querySelectorAll(".gdtl a"),
-                ];
-              if (!imgs.length) {
-                alert(
-                  "There are some issue in the script\nplease open an issue on Github\nhttps://github.com/MinoLiu/Let-s-panda/issues"
-                );
-              }
+              let imgs = getCurrPageImgUrl(response);
               imgs.forEach((v) => {
                 that.imgHref.push(v.href);
               });
@@ -1253,9 +1252,9 @@ text-decoration: none;
     if (view_mode) {
       // Stop image loadding for thumbnails.
       var imageToStop = document.querySelector("#gdt").querySelectorAll("a");
-      // Clear .gt200
+      // Clear class for #gdt
       document.querySelector("#gdt").removeAttribute("class");
-      imageToStop.forEach((img, key) => {
+      imageToStop.forEach((img) => {
         img.remove();
       })
       view();
