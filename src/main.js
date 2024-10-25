@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.19
+// @version      0.2.20
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -497,7 +497,7 @@ Please make sure you are logged in successfully and then click this <button clas
             let imgs = [
               ...new DOMParser()
                 .parseFromString(response.responseText, "text/html")
-                .querySelectorAll(".gdtm a"),
+                .querySelectorAll("#gdt a"),
             ];
             if (!imgs.length)
               imgs = [
@@ -606,7 +606,7 @@ Please make sure you are logged in successfully and then click this <button clas
               let imgs = [
                 ...new DOMParser()
                   .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll(".gdtm a"),
+                  .querySelectorAll("#gdt a"),
               ];
               if (!imgs.length)
                 imgs = [
@@ -647,7 +647,7 @@ Please make sure you are logged in successfully and then click this <button clas
               let imgs = [
                 ...new DOMParser()
                   .parseFromString(response.responseText, "text/html")
-                  .querySelectorAll(".gdtm a"),
+                  .querySelectorAll("#gdt a"),
               ];
               if (!imgs.length)
                 imgs = [
@@ -1234,6 +1234,13 @@ text-decoration: none;
       }
       if (!view_mode && !viewed) {
         viewAllMode();
+        // Stop image loadding for thumbnails.
+        var imageToStop = document.querySelector("#gdt").querySelectorAll("a");
+        // Clear .gt200
+        document.querySelector("#gdt").removeAttribute("class");
+        imageToStop.forEach((img, key) => {
+          img.remove();
+        })
         view();
       }
     });
@@ -1245,13 +1252,11 @@ text-decoration: none;
     adjustGmid();
     if (view_mode) {
       // Stop image loadding for thumbnails.
-      var imageToStop = document.querySelector("#gdt").querySelectorAll("img");
+      var imageToStop = document.querySelector("#gdt").querySelectorAll("a");
+      // Clear .gt200
+      document.querySelector("#gdt").removeAttribute("class");
       imageToStop.forEach((img, key) => {
-        // Only load the first thumbnail.
-        if (key == 0) {
-          return;
-        }
-        img.src = "";
+        img.remove();
       })
       view();
     }
