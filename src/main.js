@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.21
+// @version      0.2.22
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -62,28 +62,28 @@ jQuery(function ($) {
         .querySelectorAll(".gt200 a"),
     ];
 
-    if (!imgs.length){
+    if (!imgs.length) {
       imgs = [
         ...new DOMParser()
           .parseFromString(response.responseText, "text/html")
           .querySelectorAll(".gt100 a"),
       ];
     }
-    if (!imgs.length){
+    if (!imgs.length) {
       imgs = [
         ...new DOMParser()
           .parseFromString(response.responseText, "text/html")
           .querySelectorAll(".gdtm a"),
       ];
     }
-    if (!imgs.length){
+    if (!imgs.length) {
       imgs = [
         ...new DOMParser()
           .parseFromString(response.responseText, "text/html")
           .querySelectorAll(".gdtl a"),
       ];
     }
-    if (!imgs.length){
+    if (!imgs.length) {
       imgs = [
         ...new DOMParser()
           .parseFromString(response.responseText, "text/html")
@@ -505,9 +505,18 @@ Please make sure you are logged in successfully and then click this <button clas
               .querySelector("#img");
             if (debug) console.log(imgNo, "url success");
             let src = href + "?nl=" + /nl\(\'(.*)\'\)/.exec(img.attributes.onerror.value)[1];
+            let links = new DOMParser()
+              .parseFromString(response.responseText, "text/html")
+              .querySelectorAll("a");
+            let imgSrc = src;
+            links.forEach(link => {
+              if (link.href.includes("fullimg")) {
+                imgSrc = link.href;
+              }
+            });
             images.push({
               index: imgNo,
-              url: img.src,
+              url: imgSrc,
               backupUrl: src,
             });
             final++;
@@ -1069,7 +1078,7 @@ text-decoration: none;
             }
           }
 
-          if (e.code === "ArrowDown" || e.code === "Space"  || e.code === "KeyS") {
+          if (e.code === "ArrowDown" || e.code === "Space" || e.code === "KeyS") {
             for (let i = 0; i < g.imgList.length; i++) {
               const img = g.imgList[i].childNodes[0];
               const rect = img.getBoundingClientRect();
