@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.23
+// @version      0.2.24
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -32,13 +32,17 @@ jQuery(function ($) {
    * @type {String} zip
    *                cbz
    *
-   * Tips: Convert .zip to .cbz
-   * Windows
-   * $ ren *.zip *.cbz
-   * Linux
-   * $ rename 's/\.zip$/\.cbz/' *.zip
    */
   var outputExt = "zip"; // or 'cbz'
+
+  /**
+   * Download full image or resized image
+   * @type {String} full
+   *                resized
+   * 
+   * "full" image is the original image, which is usually larger than "resized" image.
+   */
+  var outputImgSrc = "full"; // or 'resized'
 
   /**
    * Multithreading
@@ -509,11 +513,17 @@ Please make sure you are logged in successfully and then click this <button clas
               .parseFromString(response.responseText, "text/html")
               .querySelectorAll("a");
             let imgSrc = img.src;
-            links.forEach(link => {
-              if (link.href.includes("fullimg")) {
-                imgSrc = link.href;
-              }
-            });
+
+            // Check if the image is resized or full
+            if (outputImgSrc != "resized") {
+              // If the user wants the full image, find the full image link and replace imgSrc with it
+              links.forEach(link => {
+                if (link.href.includes("fullimg")) {
+                  imgSrc = link.href;
+                }
+              });
+            }
+
             images.push({
               index: imgNo,
               url: imgSrc,
