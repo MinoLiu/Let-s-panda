@@ -23,7 +23,7 @@
 // @grant        GM.notification
 // @connect      *
 // @run-at       document-end
-// @version      0.2.22
+// @version      0.2.23
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -508,7 +508,7 @@ Please make sure you are logged in successfully and then click this <button clas
             let links = new DOMParser()
               .parseFromString(response.responseText, "text/html")
               .querySelectorAll("a");
-            let imgSrc = src;
+            let imgSrc = img.src;
             links.forEach(link => {
               if (link.href.includes("fullimg")) {
                 imgSrc = link.href;
