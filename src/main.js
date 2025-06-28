@@ -1071,6 +1071,10 @@ text-decoration: none;
         document.addEventListener("keydown", (e) => {
           let nextImg = null;
 
+          // Check if the current focus is on an input or textarea element
+          if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+            return;
+          }
 
           // ignore key combinations
           if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
