@@ -47,6 +47,9 @@ A Greasy Fork user script for exhentai
     * ![5](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/5.png)
 * When you are in double mode, click the double mode button once more and it will reverse image like this.
     * ![6](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/6.png)
+#### Keyboard Shortcuts
+* You can use the `Up (↑)` and `Down (↓)` arrow keys or the `W`, `A` and `Space` keys to switch images.
+* In `Viewer page(s): One` mode, you can use the `Left (←)` and `Right (→)` arrow keys or the `A` and `D` keys to turn pages.
 
 ### Install the Script
 
