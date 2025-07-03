@@ -763,7 +763,6 @@ Please make sure you are logged in successfully and then click this <button clas
           GM.xmlHttpRequest({
             method: "GET",
             url: href,
-            responseType: "document",
             onload: function (response) {
               that.onSucceed(response, href);
             },
@@ -784,7 +783,6 @@ Please make sure you are logged in successfully and then click this <button clas
             GM.xmlHttpRequest({
               method: "GET",
               url: href,
-              responseType: "arraybuffer",
               onload: function (response) {
                 that.final++;
                 that.onSucceed(response, href);
