@@ -1066,6 +1066,36 @@ text-decoration: none;
           g.cleanGDT();
         });
 
+        function findNextImg(key) {
+          if (key === "up") {
+            for (let i = g.imgList.length - 1; i >= 0; i--) {
+              const img = g.imgList[i].childNodes[0];
+              const rect = img.getBoundingClientRect();
+              if (rect.top < -1) {
+                // If the image is partially visible at the top, scroll to it.
+                // Otherwise, if it's the last image and almost entirely off-screen,
+                // it means we've scrolled past all images, so return null.
+                if (i === g.imgList.length - 1 && rect.bottom < 10) {
+                  return null;
+                }
+                return img;
+              }
+            }
+          }
+
+          if (key === "down") {
+            for (let i = 0; i < g.imgList.length; i++) {
+              const img = g.imgList[i].childNodes[0];
+              const rect = img.getBoundingClientRect();
+              if (rect.top > 1) {
+                return img;
+              }
+            }
+          }
+
+          return null;
+        }
+
         document.addEventListener("keydown", (e) => {
           let nextImg = null;
 
@@ -1080,25 +1110,11 @@ text-decoration: none;
           }
 
           if (e.code === "ArrowUp" || e.code === "KeyW") {
-            for (let i = g.imgList.length - 1; i >= 0; i--) {
-              const img = g.imgList[i].childNodes[0];
-              const rect = img.getBoundingClientRect();
-              if (rect.top < -1) {
-                nextImg = img;
-                break;
-              }
-            }
+            nextImg = findNextImg("up");
           }
 
           if (e.code === "ArrowDown" || e.code === "Space" || e.code === "KeyS") {
-            for (let i = 0; i < g.imgList.length; i++) {
-              const img = g.imgList[i].childNodes[0];
-              const rect = img.getBoundingClientRect();
-              if (rect.top > 1) {
-                nextImg = img;
-                break;
-              }
-            }
+            nextImg = findNextImg("down");
           }
 
           if (nextImg !== null) {
@@ -1138,6 +1154,38 @@ text-decoration: none;
           }
         })
 
+        document.addEventListener("wheel", async (e) => {
+          // If the user has enabled full image mode, we want to handle scrolling ourselves.
+          const full_image = (await GM.getValue("full_image"));
+          if (full_image !== true) {
+            return;
+          }
+
+          let nextImg = null;
+
+          // Use Math.sign() to robustly determine the scroll direction.
+          const direction = Math.sign(e.deltaY);
+
+          // Ignore horizontal scrolling (e.g., on a trackpad).
+          if (direction === 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+            return;
+          }
+
+          if (direction < 0) { // Scrolling up
+            nextImg = findNextImg("up");
+          } else { // Scrolling down
+            nextImg = findNextImg("down");
+          }
+
+          if (nextImg !== null) {
+            // Prevent default scroll since we are handling it.
+            e.preventDefault();
+            window.scrollTo({
+              top: nextImg.offsetTop,
+            });
+          }
+        }, { passive: false });
+        
         await wrap(await GM.getValue("mode"));
       } else {
         alert(
