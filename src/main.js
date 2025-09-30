@@ -1250,11 +1250,11 @@ text-decoration: none;
     if (full_image == true) {
       $("#gdt")
         .find("img")
-        .css({ "height": "100vh", "width": "auto" });
+        .css({ "height": "100vh", "width": "auto", "max-width": "100%", "object-fit": "contain" });
     } else {
       $("#gdt")
         .find("img")
-        .css({ "height": "auto", "width": $(window).width() * width });
+        .css({ "height": "", "width": $(window).width() * width, "max-width": "", "object-fit": "" });
     }
   }
 
