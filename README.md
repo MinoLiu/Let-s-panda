@@ -33,7 +33,7 @@ A Greasy Fork user script for exhentai
 #### Viewer
 1. First enable Viewer  
 ![7](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/7.png)
-![8](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/8.png)
+![8](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/8.jpg)
 * `Viewer page(s): All`   
     * Load images for all pages  
     * e.g. Showing 1 - 20 of 41 images it will load 1 - 41 images in current page  
