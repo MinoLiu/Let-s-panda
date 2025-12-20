@@ -33,9 +33,11 @@ A Greasy Fork user script for exhentai
 #### Viewer
 1. First enable Viewer  
 ![7](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/7.png)
+![8](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/8.png)
 * `Viewer page(s): All`   
     * Load images for all pages  
     * e.g. Showing 1 - 20 of 41 images it will load 1 - 41 images in current page  
+    * If Load Limiter is enabled, the system will automatically switch to `One` mode whenever the number of images in the gallery exceeds 320.
 * `Viewer page(s): One`   
     * Load images for current page  
     * e.g. Showing 1 - 20 of 41 images it will load 1 - 20 images in current page  
@@ -48,7 +50,7 @@ A Greasy Fork user script for exhentai
 * When you are in double mode, click the double mode button once more and it will reverse image like this.
     * ![6](https://raw.githubusercontent.com/Sean2525/Let-s-panda/master/images/6.png)
 #### Keyboard Shortcuts
-* You can use the `Up (↑)` and `Down (↓)` arrow keys or the `W`, `A` and `Space` keys to switch images.
+* You can use the `Up (↑)` and `Down (↓)` arrow keys or the `W`, `S` and `Space` keys to switch images.
 * In `Viewer page(s): One` mode, you can use the `Left (←)` and `Right (→)` arrow keys or the `A` and `D` keys to turn pages.
 
 ### Install the Script
