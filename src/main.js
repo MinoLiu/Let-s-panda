@@ -59,6 +59,12 @@ jQuery(function ($) {
 
   var viewed = false;
 
+  /**
+   * Gallery Load Limiter maximum number of images
+   * @type {Number}
+   */
+  const MAX_GALLERY_NUM = 320;
+
   const getCurrPageImgUrl = (response) => {
     let imgs = [
       ...new DOMParser()
@@ -635,6 +641,10 @@ Please make sure you are logged in successfully and then click this <button clas
         this.final = 0;
       };
       var viewAll = await GM.getValue("view_all", true);
+      // If the gallery limiter is found to be enabled in "view all" mode, reverse its state.
+      if (viewAll && await GM.getValue("view_all_limiter", false) && imgNum > MAX_GALLERY_NUM) {
+        viewAll = !viewAll;
+      }
       Gallery.prototype = {
         imgHref: [],
         imgList: [],
@@ -1057,6 +1067,10 @@ text-decoration: none;
 
       if (g.checkFunctional()) {
         var viewAll = await GM.getValue("view_all", true);
+        // If the gallery limiter is found to be enabled in "view all" mode, reverse its state.
+        if (viewAll && await GM.getValue("view_all_limiter", false) && imgNum > MAX_GALLERY_NUM) {
+          viewAll = !viewAll;
+        }
         g.generateImg(function () {
           if (g.pageNum && viewAll) {
             g.getAllHref(0);
@@ -1137,6 +1151,10 @@ text-decoration: none;
 
 
           var view_all = await GM.getValue("view_all", true);
+          // If the gallery limiter is found to be enabled in "view all" mode, reverse its state.
+          if (view_all && await GM.getValue("view_all_limiter", false) && imgNum > MAX_GALLERY_NUM) {
+            view_all = !view_all;
+          }
 
           if (view_all === true) {
             return;
@@ -1268,9 +1286,14 @@ text-decoration: none;
   const viewAllMode = async () => {
     var view_all_btn = document.createElement("p");
     var view_all = await GM.getValue("view_all", true);
+    var view_all_limiter = await GM.getValue("view_all_limiter", false);
 
     view_all_btn.className = "g3";
-    view_all_btn.innerHTML = `<span style="margin-left:10px;">▶</span> <a class="panda_view_all" href="#">Viewer page(s): ${view_all ? "All" : "One"}</a>`;
+    view_all_btn.innerHTML = `
+      <span style="margin-left:10px;">▶</span> <a class="panda_view_all" href="#">Viewer page(s): ${view_all ? "All" : "One"}</a>
+      ${view_all ? `<br/>` : ""}
+      ${view_all ? `<span style="margin-left:10px;visibility: hidden;">▶</span> <a class="panda_view_all_limit" href="#">Load Limiter: ${view_all_limiter ? "On" : "Off"}</a>` : ""}
+    `;
     $("#gd5").append(view_all_btn);
 
     $(".panda_view_all").on("click", async () => {
@@ -1278,6 +1301,15 @@ text-decoration: none;
       GM.setValue("view_all", !view_all);
       $(".panda_view_all").html(
         `Viewer page(s): ${view_all ? "All" : "One"}`
+      );
+      window.location.reload(true);
+    });
+
+    $(".panda_view_all_limit").on("click", async () => {
+      view_all_limiter = await GM.getValue("view_all_limiter", false);
+      GM.setValue("view_all_limiter", !view_all_limiter);
+      $(".panda_view_all_limit").html(
+        `Load Limiter: ${view_all_limiter ? "On" : "Off"}`
       );
       window.location.reload(true);
     });
